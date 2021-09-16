@@ -1,0 +1,48 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: rgb(53, 54, 58);
+}
+
+#game-container {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#game-container>canvas {
+  border-radius: 5px;
+}
+
+#gameTitle {
+  color: white;
+}
+
+#initialScreenMessage {
+  color: white;
+}
+
+#chatBox {
+  font-size: 14px;
+  font-family: monospace;
+  width: 300px;
+  opacity: 0.8;
+}
+
+#chatBox input {
+  padding: 3px;
+  width: 300px;
+}
+
+#messages {
+  display: block;
+  color: white;
+  background-color: #21313CDD;
+  list-style: none;
+  margin: 0;
+  height: 150px;
+  padding: 10px 0px 10px 10px;
+  overflow: scroll;
+}

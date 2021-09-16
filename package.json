@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "socket.io": "^4.2.0",
+    "phaser": "^3.55.2"
+  },
+  "scripts": {
+    "start": "node server/server.js"
+  }
+}

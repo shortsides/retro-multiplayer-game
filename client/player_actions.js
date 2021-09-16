@@ -1,0 +1,74 @@
+import { SPRITES } from "./index.js";
+import { FRAME_RATE } from "./index.js";
+import { socket } from "./index.js";
+import { getUserSprite } from "./index.js";
+import { playerName } from "./index.js";
+import { playerSprite } from "./index.js";
+
+export default class PlayerActions extends Phaser.Scene {
+
+    constructor(scene) {
+        super(scene);
+    }
+
+    movePlayer (self) {
+
+        if (!self.gameActive) {
+            return
+        }
+
+        const speed = 175;
+        const prevVelocity = self.playerContainer.body.velocity.clone();
+    
+        // if player has stopped in the last frame, tell server velocity is 0
+        if (!self.stoppedLog && self.playerContainer.body.velocity.x === 0 && self.playerContainer.body.velocity.y === 0) {
+            self.stoppedLog = true;
+            socket.emit('playerMovement', {
+                velocity: self.playerContainer.body.velocity,
+                position: self.playerContainer.body.position
+            });
+        }
+        
+        // Stop any previous movement from the last frame
+        self.playerContainer.body.velocity.x = 0;
+        self.playerContainer.body.velocity.y = 0;
+    
+        // Handle player movement
+        if (self.cursors.left.isDown) {
+            self.playerContainer.body.setVelocityX(-speed);
+            self.player.anims.play(`${playerSprite.spriteNum}-left-walk`, true);
+            self.stoppedLog = false;
+        } else if (self.cursors.right.isDown) {
+            self.playerContainer.body.setVelocityX(speed);
+            self.player.anims.play(`${playerSprite.spriteNum}-right-walk`, true);
+            self.stoppedLog = false;
+        } else if (self.cursors.up.isDown) {
+            self.playerContainer.body.setVelocityY(-speed);
+            self.player.anims.play(`${playerSprite.spriteNum}-back-walk`, true);
+            self.stoppedLog = false;
+        } else if (self.cursors.down.isDown) {
+            self.playerContainer.body.setVelocityY(speed);
+            self.player.anims.play(`${playerSprite.spriteNum}-front-walk`, true);
+            self.stoppedLog = false;
+        } else {
+            self.player.anims.stop();
+    
+            // If movement stops, set idle frame
+            if (prevVelocity.x < 0) self.player.setTexture(playerSprite.spriteSheet,playerSprite.left);
+            else if (prevVelocity.x > 0) self.player.setTexture(playerSprite.spriteSheet,playerSprite.right);
+            else if (prevVelocity.y < 0) self.player.setTexture(playerSprite.spriteSheet,playerSprite.back);
+            else if (prevVelocity.y > 0) self.player.setTexture(playerSprite.spriteSheet,playerSprite.front);
+        }
+        
+        // Send movement updates to server
+        const movementData = {
+            velocity: self.playerContainer.body.velocity,
+            position: self.playerContainer.body.position
+        }
+        if (prevVelocity.x !== self.playerContainer.body.velocity.x || prevVelocity.y !== self.playerContainer.body.velocity.y) {
+            socket.emit('playerMovement', movementData);
+        }
+    }
+
+
+}
