@@ -34,6 +34,10 @@ export default class SceneMainBuilding extends Phaser.Scene {
         { frameWidth: 16, frameHeight: 20 });
         this.load.spritesheet(SPRITES[8].spriteSheet, SPRITES[8].spriteSheetPath, 
             { frameWidth: 16, frameHeight: 20 });
+
+        // environment animations
+        this.load.spritesheet("fire", "assets/sprites/fire.png", { frameWidth: 16, frameHeight: 20 });
+        this.load.spritesheet("fire2", "assets/sprites/fire2.png", { frameWidth: 16, frameHeight: 20 });
     }
 
     create() {
@@ -56,6 +60,21 @@ export default class SceneMainBuilding extends Phaser.Scene {
     
         worldLayer.setCollisionByProperty({ collides: true });
         aboveLayer.setDepth(10);
+
+        // Create the players' walking animations from the spritesheet. 
+        // These are stored in the global animation manager 
+        const animManager = new Anims(this);
+        animManager.createAnims(this)
+
+        // Create cursor keys
+        const cursors = new Cursors(this);
+
+        // Debug graphics
+        //cursors.debugGraphics(this, worldLayer);
+
+        // Add fire animations
+        this.add.sprite(688, 534, 'fire2').setScale(1.5).play('fire_anim2');
+        this.add.sprite(560, 290, 'fire').setScale(1).play('fire_anim');
 
         // Create chat window
         this.chat = this.add.dom(160, 100).createFromCache("chat")
@@ -101,18 +120,6 @@ export default class SceneMainBuilding extends Phaser.Scene {
         socket.on('playerMoved', function(playerInfo) {
             playerManager.moveOtherPlayers(self, playerInfo, scene)
         })
-    
-        // Create the players' walking animations from the spritesheet. 
-        // These are stored in the global animation manager 
-        const animManager = new Anims(this);
-        animManager.createAnims(this)
-
-    
-        // Create cursor keys
-        const cursors = new Cursors(this);
-
-        // Debug graphics
-        //cursors.debugGraphics(this, worldLayer);
 
         // remove players who leave the scene
         socket.on('playerChangedScene', function (player) {

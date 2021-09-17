@@ -49,6 +49,27 @@ export default class Anims extends Phaser.Scene {
                 repeat: -1
             });
         }
+        // create fire animations
+        anims.create({
+            key: 'fire_anim',
+            frames: self.anims.generateFrameNames('fire', {
+                start: 0,
+                end: 5
+                }),
+            frameRate: FRAME_RATE,
+            repeat: -1
+        })
+        anims.create({
+            key: 'fire_anim2',
+            frames: self.anims.generateFrameNames('fire2', {
+                start: 0,
+                end: 5
+                }),
+            frameRate: FRAME_RATE,
+            repeat: -1
+        })
     }
+
+
 
 }
