@@ -42,6 +42,9 @@ export default class SceneMainBuilding extends Phaser.Scene {
 
     create() {
 
+        // hack-ey way to make sure the chat is added to correct place in DOM
+        document.getElementById('game-container').style.display = 'flex';
+
         const scene = 'SceneMainBuilding';
 
         let self = this;    
@@ -126,7 +129,8 @@ export default class SceneMainBuilding extends Phaser.Scene {
             playerManager.changeScene(self, player, scene);
         })
         
-    
+        // hack-ey way to make sure the chat is added to correct place in DOM
+        document.getElementById('game-container').style.display = 'none';
     }
 
     update(time, delta) {

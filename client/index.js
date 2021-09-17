@@ -124,6 +124,8 @@ export const SPRITES = [
     }
   ];
 
+
+
 function playGame() {
     playerName = nameInput.value;
     if (playerName.length < 1) {
@@ -141,7 +143,8 @@ function handleServerFull(serverName) {
 function handleInit() {
 
     initialScreen.style.display = 'none';
-    gameScreen.style.display = 'block';
+    gameScreen.style.display = 'flex';
+
     playerSprite = getUserSprite(playerName);
 
 }
