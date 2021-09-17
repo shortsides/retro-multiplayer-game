@@ -37,6 +37,7 @@ io.on("connection", client => {
             name: playerName,
             velocity: {},
             scene: 'SceneMainBuilding',
+            init: true,
             position: {
                 x: 480,
                 y: 625
@@ -57,6 +58,7 @@ io.on("connection", client => {
         // update all other players of the new player
         io.sockets.in(roomName).emit('newPlayer', player);
         console.log(`${playerName} has joined ${roomName}`);
+        player.init = false;
 
         //startGameInterval(roomName);
 

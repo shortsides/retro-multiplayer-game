@@ -1,5 +1,5 @@
-import SceneMainBuilding from "./mainBuilding.js";
-import SceneWorld from "./World.js";
+import SceneMainBuilding from "./src/scenes/mainBuilding.js";
+import SceneWorld from "./src/scenes/World.js";
 
 // production server config
 //const socket = io('https://quiet-coast-19364.herokuapp.com/');

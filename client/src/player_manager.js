@@ -1,9 +1,6 @@
-import { SPRITES } from "./index.js";
-import { FRAME_RATE } from "./index.js";
-import { socket } from "./index.js";
-import { getUserSprite } from "./index.js";
-import { playerName } from "./index.js";
-import { playerSprite } from "./index.js";
+import { socket } from "../index.js";
+import { getUserSprite } from "../index.js";
+import { playerSprite } from "../index.js";
 
 export default class PlayerManager extends Phaser.Scene {
 
@@ -79,7 +76,7 @@ export default class PlayerManager extends Phaser.Scene {
         // Watch the other player and worldLayer for collisions
         self.physics.add.collider(otherPlayerContainer, worldLayer);
 
-        // ad other player to list of otherplayers
+        // add other player to list of otherplayers
         self.otherPlayers.add(otherPlayerContainer);
 
     }

@@ -1,11 +1,11 @@
-import { SPRITES } from "./index.js";
-import { socket } from "./index.js";
+import { SPRITES } from "../../index.js";
+import { socket } from "../../index.js";
 
-import PlayerManager from "./player_manager.js";
-import Anims from "./anims.js";
-import Cursors from "./cursors.js";
-import PlayerActions from "./player_actions.js";
-import ChatManager from "./chat_manager.js";
+import PlayerManager from "../player_manager.js";
+import Anims from "../anim_manager.js";
+import Cursors from "../cursors.js";
+import PlayerActions from "../player_actions.js";
+import ChatManager from "../chat_manager.js";
 
 export default class SceneMainBuilding extends Phaser.Scene {
 
@@ -38,7 +38,7 @@ export default class SceneMainBuilding extends Phaser.Scene {
 
     create() {
 
-        const scene = 'mainBuilding';
+        const scene = 'SceneMainBuilding';
 
         let self = this;    
     
@@ -56,6 +56,15 @@ export default class SceneMainBuilding extends Phaser.Scene {
     
         worldLayer.setCollisionByProperty({ collides: true });
         aboveLayer.setDepth(10);
+
+        // Create chat window
+        this.chat = this.add.dom(160, 100).createFromCache("chat")
+            .setScrollFactor(0)
+            .setDepth(30)
+
+        let chat = new ChatManager(this);
+
+        this.registry.set('chatMessages', chat.chatMessages);
         
         let playerManager = new PlayerManager(this);
     
@@ -74,12 +83,18 @@ export default class SceneMainBuilding extends Phaser.Scene {
         
         // When a new player joins, spawn them
         socket.on('newPlayer', function (playerInfo) {
+            if (playerInfo.scene !== scene) {
+                return;
+            }
             if (playerInfo.playerId === socket.id) {
                 return;
-            } else {
-                console.log(`${playerInfo.name} joined the game`);
-                playerManager.addOtherPlayers(self, playerInfo, worldLayer, scene);
             }
+            if (playerInfo.init === true) {
+                console.log(`${playerInfo.name} joined the game`);
+                chat.alertRoom(self, `${playerInfo.name} joined the game.`)
+            }
+            playerManager.addOtherPlayers(self, playerInfo, worldLayer, scene);
+            
         })
     
         // Handle other player movements
@@ -91,15 +106,6 @@ export default class SceneMainBuilding extends Phaser.Scene {
         // These are stored in the global animation manager 
         const animManager = new Anims(this);
         animManager.createAnims(this)
-    
-        // Create chat window
-        this.chat = this.add.dom(160, 100).createFromCache("chat")
-            .setScrollFactor(0)
-            .setDepth(30)
-
-        let chat = new ChatManager(this);
-
-        this.registry.set('chatMessages', chat.chatMessages);
 
     
         // Create cursor keys

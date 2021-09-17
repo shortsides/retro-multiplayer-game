@@ -1,11 +1,10 @@
-import { SPRITES } from "./index.js";
-import { socket } from "./index.js";
+import { SPRITES } from "../../index.js";
+import { socket } from "../../index.js";
 
-import PlayerManager from "./player_manager.js";
-import Anims from "./anims.js";
-import Cursors from "./cursors.js";
-import PlayerActions from "./player_actions.js";
-import ChatManager from "./chat_manager.js";
+import PlayerManager from "../player_manager.js";
+import Cursors from "../cursors.js";
+import PlayerActions from "../player_actions.js";
+import ChatManager from "../chat_manager.js";
 
 export default class SceneWorld extends Phaser.Scene {
 
@@ -67,23 +66,23 @@ export default class SceneWorld extends Phaser.Scene {
         
         // When a new player joins, spawn them
         socket.on('newPlayer', function (playerInfo) {
+            if (playerInfo.scene !== scene) {
+                return;
+            }
             if (playerInfo.playerId === socket.id) {
                 return;
-            } else {
-                console.log(`${playerInfo.name} joined ${scene}`);
-                playerManager.addOtherPlayers(self, playerInfo, worldLayer, scene);
             }
+            if (playerInfo.init === true) {
+                chat.alertRoom(self, `${playerInfo.name} joined the game.`)
+            }
+            playerManager.addOtherPlayers(self, playerInfo, worldLayer, scene);
+            
         })
     
         // Handle other player movements
         socket.on('playerMoved', function(playerInfo) {
             playerManager.moveOtherPlayers(self, playerInfo, scene)
         })
-    
-        // Create the players' walking animations from the spritesheet. 
-        // These are stored in the global animation manager 
-        const animManager = new Anims(this);
-        animManager.createAnims(this)
     
         // Create chat window
         this.chat = this.add.dom(160, 100).createFromCache("chat")

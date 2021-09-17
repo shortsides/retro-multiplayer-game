@@ -1,9 +1,5 @@
-import { SPRITES } from "./index.js";
-import { FRAME_RATE } from "./index.js";
-import { socket } from "./index.js";
-import { getUserSprite } from "./index.js";
-import { playerName } from "./index.js";
-import { playerSprite } from "./index.js";
+import { socket } from "../index.js";
+import { playerSprite } from "../index.js";
 
 export default class PlayerActions extends Phaser.Scene {
 

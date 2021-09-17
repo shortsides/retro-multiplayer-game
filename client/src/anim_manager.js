@@ -1,5 +1,5 @@
-import { SPRITES } from "./index.js";
-import { FRAME_RATE } from "./index.js";
+import { SPRITES } from "../index.js";
+import { FRAME_RATE } from "../index.js";
 
 export default class Anims extends Phaser.Scene {
 
