@@ -12,7 +12,7 @@ export default class PlayerManager extends Phaser.Scene {
 
         // create player container for sprite and floating name
         self.playerContainer = self.add.container(playerInfo.position.x, playerInfo.position.y)
-        self.playerContainer.setSize(30, 32);
+        self.playerContainer.setSize(22, 30);
         
         // add player sprite
         self.player = self.physics.add
@@ -136,6 +136,16 @@ export default class PlayerManager extends Phaser.Scene {
                 })
             }
         }
+    }
+
+    deletePlayer (self, player) {
+        // remove player from otherPlayers
+        self.otherPlayers.getChildren().forEach(function (otherPlayer) {
+            if (otherPlayer.first.playerId === player.playerId) {
+                console.log(`${player.name} left the game`);
+                otherPlayer.destroy();
+            }
+        })
     }
 
 

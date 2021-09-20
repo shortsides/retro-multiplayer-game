@@ -5,6 +5,23 @@ const io = require("socket.io")(httpServer, {
 
 const ROOM_MAX_CAPACITY = 8;
 const FRAME_RATE = 10;
+const SCENES = [
+    {
+        name: 'SceneMainBuilding',
+        position: {
+            x: 480,
+            y: 625
+        }
+    },
+    {
+        name: 'SceneWorld',
+        position: {
+            x: 1167,
+            y: 613
+        }
+    }
+]
+
 let rooms = []; // tracks active rooms on server
 let players = []; // tracks players
 
@@ -49,9 +66,6 @@ io.on("connection", client => {
 
         client.join(roomName);
 
-        // init the game
-        client.emit('init');
-
         // send the room's state to the new player
         client.emit('currentPlayers', players);
 
@@ -69,10 +83,10 @@ io.on("connection", client => {
 
             // delete player from room;
             players = players.filter(player => player.playerId !== client.id);
+            io.sockets.in(roomName).emit('disconnectPlayer', player);
 
             // shut down room if empty
             shutDownRoom(roomName); 
-            io.sockets.in(roomName).emit('disconnectPlayer', player);
         })
 
 
@@ -94,6 +108,14 @@ io.on("connection", client => {
 
         // when a player changes scene, update the players
         client.on("sceneChange", function (newScene) {
+
+            // get new scene details e.g. starting position
+            let scene;
+            for (let s of SCENES) {
+                if (s.name === newScene) {
+                    scene = s;
+                }
+            }
             
             for (let p of players) {
                 if (p.playerId === client.id) {
@@ -101,10 +123,7 @@ io.on("connection", client => {
 
                     // update player position for new scene
                     p.velocity = {};
-                    p.position = {
-                        x: 210,
-                        y: 288
-                    };
+                    p.position = scene.position;
 
                     // emit to all players that the player moved
                     io.sockets.in(roomName).emit('playerChangedScene', p);

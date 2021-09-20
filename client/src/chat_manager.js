@@ -22,13 +22,16 @@ export default class ChatManager extends Phaser.Scene {
     }
 
     reloadMessages(self, messages) {
-        self.chatArea = document.getElementById('messages');
-        for (let message of messages) {
-            const el = document.createElement('li');
-            el.innerText = message;
-            self.chatArea.appendChild(el);
-            self.chatArea.scrollTop = self.chatArea.scrollHeight;
+        if (messages) {
+            self.chatArea = document.getElementById('messages');
+            for (let message of messages) {
+                const el = document.createElement('li');
+                el.innerText = message;
+                self.chatArea.appendChild(el);
+                self.chatArea.scrollTop = self.chatArea.scrollHeight;
+            }
         }
+
     }
 
     alertRoom(self, message) {

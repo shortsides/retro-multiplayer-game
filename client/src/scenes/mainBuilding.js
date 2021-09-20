@@ -6,6 +6,8 @@ import Anims from "../anim_manager.js";
 import Cursors from "../cursors.js";
 import PlayerActions from "../player_actions.js";
 import ChatManager from "../chat_manager.js";
+import NPC from "../NPC.js";
+import { innkeeperConfig } from "../NPC_char.js";
 
 export default class SceneMainBuilding extends Phaser.Scene {
 
@@ -17,33 +19,14 @@ export default class SceneMainBuilding extends Phaser.Scene {
         this.gameActive = false;
         this.stoppedLog = true;
         this.otherPlayers;
+        this.dialogueActive = false;
     }
 
     preload() {
-
-        this.load.image("tiles", "assets/tilesets/interior_atlas_extruded.png");
-        this.load.tilemapTiledJSON("map", "assets/tilesets/main-interior.json");
-
-        // load chat input field
-        this.load.html("chat", "chat_form.html");
-
-        // load spritesheets
-        this.load.spritesheet(SPRITES[0].spriteSheet, SPRITES[0].spriteSheetPath, 
-        { frameWidth: 16, frameHeight: 20 });
-        this.load.spritesheet(SPRITES[4].spriteSheet, SPRITES[4].spriteSheetPath, 
-        { frameWidth: 16, frameHeight: 20 });
-        this.load.spritesheet(SPRITES[8].spriteSheet, SPRITES[8].spriteSheetPath, 
-            { frameWidth: 16, frameHeight: 20 });
-
-        // environment animations
-        this.load.spritesheet("fire", "assets/sprites/fire.png", { frameWidth: 16, frameHeight: 20 });
-        this.load.spritesheet("fire2", "assets/sprites/fire2.png", { frameWidth: 16, frameHeight: 20 });
+        
     }
 
     create() {
-
-        // hack-ey way to make sure the chat is added to correct place in DOM
-        document.getElementById('game-container').style.display = 'flex';
 
         const scene = 'SceneMainBuilding';
 
@@ -64,11 +47,6 @@ export default class SceneMainBuilding extends Phaser.Scene {
         worldLayer.setCollisionByProperty({ collides: true });
         aboveLayer.setDepth(10);
 
-        // Create the players' walking animations from the spritesheet. 
-        // These are stored in the global animation manager 
-        const animManager = new Anims(this);
-        animManager.createAnims(this)
-
         // Create cursor keys
         const cursors = new Cursors(this);
 
@@ -80,24 +58,60 @@ export default class SceneMainBuilding extends Phaser.Scene {
         this.add.sprite(560, 290, 'fire').setScale(1).play('fire_anim');
 
         // Create chat window
-        this.chat = this.add.dom(160, 100).createFromCache("chat")
+        this.chat = this.add.dom(16, 16).createFromCache("chat")
             .setScrollFactor(0)
             .setDepth(30)
-
+        
         let chat = new ChatManager(this);
-
+        
+        // Reload messages from previous scene into chat
+        let messages = this.registry.get('chatMessages')
+        chat.reloadMessages(this, messages);
         this.registry.set('chatMessages', chat.chatMessages);
         
-        let playerManager = new PlayerManager(this);
+        // Create player in scene
+        this.playerManager = new PlayerManager(this);
+
+        // Turn off camera initially until player info is loaded from server
+        this.cameras.main.visible = false;
     
         // When this player joins, spawn all current players in room
         socket.on('currentPlayers', function (players) {
             self.otherPlayers = self.physics.add.group();
             Object.keys(players).forEach(function (id) {
                 if (players[id].playerId === socket.id) {
-                    playerManager.addPlayer(self, players[id], worldLayer, map);
+                    self.playerManager.addPlayer(self, players[id], worldLayer, map);
+                    console.log(`spawned ${players[id].name} in ${scene}`)
+                    self.cameras.main.visible = true;
+                    self.cameras.main.fadeIn(500);
+                    document.getElementById('chatBox').style.display = 'block';
+
+                    // listen for player collisions with inkeeper container
+                    self.physics.add.overlap(self.innKeeperContainer, self.playerContainer, function() {
+
+                        self.input.keyboard.on("keydown-SPACE", () => {
+
+                            if (!self.innKeeperContainer.body.embedded && self.innKeeperContainer.body.touching.none) {
+                                return;
+                            }
+                            
+                            if (self.dialogueActive === false) {
+                                self.dialogueActive = true;
+                                self.innkeeper.setTexture(SPRITES[0].spriteSheet, 20) // face the player
+                                self.innkeeper.readDialogue("hello");
+
+                                setTimeout(function () {
+                                    self.subtitle.setAlpha(0);
+                                    self.dialogueActive = false;
+                                }, 4000)
+                                return;
+                            }
+                            
+                        });
+                    });
+
                 } else {
-                    playerManager.addOtherPlayers(self, players[id], worldLayer, scene);
+                    self.playerManager.addOtherPlayers(self, players[id], worldLayer, scene);
                 }
             });
             self.gameActive = true;
@@ -115,28 +129,70 @@ export default class SceneMainBuilding extends Phaser.Scene {
                 console.log(`${playerInfo.name} joined the game`);
                 chat.alertRoom(self, `${playerInfo.name} joined the game.`)
             }
-            playerManager.addOtherPlayers(self, playerInfo, worldLayer, scene);
+            self.playerManager.addOtherPlayers(self, playerInfo, worldLayer, scene);
             
         })
     
         // Handle other player movements
         socket.on('playerMoved', function(playerInfo) {
-            playerManager.moveOtherPlayers(self, playerInfo, scene)
+            self.playerManager.moveOtherPlayers(self, playerInfo, scene)
         })
 
         // remove players who leave the scene
         socket.on('playerChangedScene', function (player) {
-            playerManager.changeScene(self, player, scene);
+            self.playerManager.changeScene(self, player, scene);
         })
+
+        // remove players who leave the game
+        socket.on('disconnectPlayer', function(player) {
+            self.playerManager.deletePlayer(self, player);
+            chat.alertRoom(self, `${player.name} left the game.`)
+        })
+
+
+
+        // Create subtitle text for player interaction with NPCs
+        this.subtitle = this.add.text(0, 0, '(subtitle)', {
+            fontFamily: 'monospace',
+            color: '#FFF',
+            stroke: '#000',
+            strokeThickness: 3,
+            align: 'left',
+            padding: 20,
+            opacity: 0,
+            wordWrap: {
+                width: this.cameras.main.width - 500,
+                useAdvancedWrap: true
+            }
+        })
+        .setOrigin(0, 1)
+        .setScrollFactor(0)
+        .setDepth(30)
+        .setAlpha(0)
+        this.subtitle.setPosition(100, (500 + this.subtitle.displayHeight));
+        this.lineIndex = 0;
+
+
+        // Create innkeeper NPC
+        this.innkeeper = new NPC(this, innkeeperConfig);
+
+
+        // Create inkeeper collision box
+        this.innKeeperContainer = this.add.container(550, 470)
+        this.innKeeperContainer.setSize(80, 40)
+        this.physics.world.enable(this.innKeeperContainer);
         
-        // hack-ey way to make sure the chat is added to correct place in DOM
-        document.getElementById('game-container').style.display = 'none';
+    
     }
 
     update(time, delta) {
 
-        if (!this.gameActive) {
-            return
+        if (!this.gameActive) { // do not run if game is not active
+            return;
+        }
+
+        if (this.dialogueActive) { // do not run if player is interacting with non-player objects
+            return;
         }
 
         const playerActions = new PlayerActions(this);
@@ -145,23 +201,19 @@ export default class SceneMainBuilding extends Phaser.Scene {
         // check if player has left main building
         if (this.playerContainer.body.position.y > 640) {
 
+            let self = this;
+
             // pause player position
             this.playerContainer.body.moves = false;
             this.cameras.main.fadeOut(2000);
 
-            let self = this;
+            // change scene
+            socket.off();
 
-            // after 250ms, change scene
-            setTimeout(function(){
-
-                socket.off();
-    
-                let newScene = 'SceneWorld';
-                self.scene.start(newScene, self);
-                self.anims.resumeAll();
-                socket.emit("sceneChange", newScene);
-                
-            }, 250)
+            let newScene = 'SceneWorld';
+            self.scene.start(newScene, self);
+            self.anims.resumeAll();
+            socket.emit("sceneChange", newScene);
 
 
         }

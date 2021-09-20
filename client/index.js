@@ -1,3 +1,4 @@
+import TitleScene from "./src/scenes/titleScene.js";
 import SceneMainBuilding from "./src/scenes/mainBuilding.js";
 import SceneWorld from "./src/scenes/World.js";
 
@@ -7,7 +8,6 @@ import SceneWorld from "./src/scenes/World.js";
 // local testing config
 export const socket = io('http://localhost:3000/');
 
-socket.on('init', handleInit);
 socket.on('serverFull', handleServerFull);
 
 const initialScreen = document.getElementById('initialScreen');
@@ -16,7 +16,7 @@ const gameScreen = document.getElementById('game-container');
 const nameInput = document.getElementById('nameInput');
 const playButton = document.getElementById('playButton');
 
-playButton.addEventListener('click', playGame);
+playButton.addEventListener('click', initGame);
 
 export let playerName;
 export let playerSprite;
@@ -124,46 +124,8 @@ export const SPRITES = [
     }
   ];
 
-
-
-function playGame() {
-    playerName = nameInput.value;
-    if (playerName.length < 1) {
-        initialScreenMessage.innerText = 'Please enter your name';
-        return;
-    }
-    socket.emit('playGame', playerName);
-    initialScreenMessage.innerText = 'Joining server...';
-}
-
-function handleServerFull(serverName) {
-    initialScreenMessage.innerText = `${serverName} is full`;
-}
-
-function handleInit() {
-
-    initialScreen.style.display = 'none';
-    gameScreen.style.display = 'flex';
-
-    playerSprite = getUserSprite(playerName);
-
-}
-
-
-// select a sprite for player based on hash of their username
-export function getUserSprite (username) {
-    // Compute hash code
-    let hash = 7;
-    for (let i = 0; i < username.length; i++) {
-      hash = username.charCodeAt(i) + (hash << 5) - hash;
-    }
-    // Calculate sprite number
-    const index = Math.abs(hash % SPRITES.length);
-    return SPRITES[index];
-}
-
-
-const config = {
+// Phaser game config
+let config = {
     type: Phaser.AUTO,
     width: 800,
     height: 600,
@@ -178,7 +140,49 @@ const config = {
     dom: {
         createContainer: true
     },
-    scene: [ SceneMainBuilding, SceneWorld ]
 };
 
-const game = new Phaser.Game(config);
+// create scenes
+let titleScene = new TitleScene();
+let sceneMainBuilding = new SceneMainBuilding();
+let sceneWorld = new SceneWorld();
+
+function initGame() {
+
+    playerName = nameInput.value;
+    if (playerName.length < 1) {
+        initialScreenMessage.innerText = 'Please enter your name';
+        return;
+    }
+
+    playerSprite = getUserSprite(playerName);
+
+    // start Phaser and ready game scenes
+    let game = new Phaser.Game(config)
+    game.scene.add('TitleScene', titleScene);
+    game.scene.add('SceneMainBuilding', sceneMainBuilding);
+    game.scene.add('SceneWorld', sceneWorld);
+
+    // start title scene
+    game.scene.start('TitleScene');
+
+    initialScreen.style.display = 'none';
+    
+}
+
+function handleServerFull(serverName) {
+    initialScreenMessage.innerText = `${serverName} is full`;
+}
+
+// select a sprite for player based on hash of their username
+export function getUserSprite (username) {
+    // Compute hash code
+    let hash = 7;
+    for (let i = 0; i < username.length; i++) {
+      hash = username.charCodeAt(i) + (hash << 5) - hash;
+    }
+    // Calculate sprite number
+    const index = Math.abs(hash % SPRITES.length);
+    return SPRITES[index];
+}
+
