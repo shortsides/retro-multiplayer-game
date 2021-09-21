@@ -132,15 +132,20 @@ export default class NPC extends Phaser.GameObjects.Sprite {
 
         let keyDown = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
         keyDown.on("down", () => {
-            if (!this.scene.dialogueActive) {
-                return;
-            }
-            this.scene.subtitleBoxYes.selected = !this.scene.subtitleBoxYes.selected;
-            this.scene.subtitleBoxYes.isStroked = !this.scene.subtitleBoxYes.isStroked;
 
-            this.scene.subtitleBoxNo.selected = !this.scene.subtitleBoxNo.selected;
-            this.scene.subtitleBoxNo.isStroked = !this.scene.subtitleBoxNo.isStroked;
-            keyDown.reset();
+            if (Phaser.Input.Keyboard.JustDown(keyDown)) { // prevents duplication of keydown event
+
+                if (!this.scene.dialogueActive) {
+                    return;
+                }
+
+                // toggle answer options
+                this.scene.subtitleBoxYes.selected = !this.scene.subtitleBoxYes.selected;
+                this.scene.subtitleBoxYes.isStroked = !this.scene.subtitleBoxYes.isStroked;
+    
+                this.scene.subtitleBoxNo.selected = !this.scene.subtitleBoxNo.selected;
+                this.scene.subtitleBoxNo.isStroked = !this.scene.subtitleBoxNo.isStroked;
+            }
         });
         
 
