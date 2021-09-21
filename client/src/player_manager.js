@@ -38,6 +38,11 @@ export default class PlayerManager extends Phaser.Scene {
         const camera = self.cameras.main;
         camera.startFollow(self.playerContainer);
         camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+        camera.visible = true;
+        camera.fadeIn(500);
+
+        console.log(`spawned ${playerInfo.name} in ${playerInfo.scene}`)
+
     }
 
     addOtherPlayers (self, playerInfo, worldLayer, scene) {

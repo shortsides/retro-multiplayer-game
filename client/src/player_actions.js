@@ -9,7 +9,7 @@ export default class PlayerActions extends Phaser.Scene {
 
     movePlayer (self) {
 
-        if (!self.gameActive) {
+        if (!self.gameActive || self.dialogueActive) {
             return
         }
 
@@ -50,10 +50,10 @@ export default class PlayerActions extends Phaser.Scene {
             self.player.anims.stop();
     
             // If movement stops, set idle frame
-            if (prevVelocity.x < 0) self.player.setTexture(playerSprite.spriteSheet,playerSprite.left);
-            else if (prevVelocity.x > 0) self.player.setTexture(playerSprite.spriteSheet,playerSprite.right);
-            else if (prevVelocity.y < 0) self.player.setTexture(playerSprite.spriteSheet,playerSprite.back);
-            else if (prevVelocity.y > 0) self.player.setTexture(playerSprite.spriteSheet,playerSprite.front);
+            if (prevVelocity.x < 0) self.player.setTexture(playerSprite.spriteSheet, playerSprite.left);
+            else if (prevVelocity.x > 0) self.player.setTexture(playerSprite.spriteSheet, playerSprite.right);
+            else if (prevVelocity.y < 0) self.player.setTexture(playerSprite.spriteSheet, playerSprite.back);
+            else if (prevVelocity.y > 0) self.player.setTexture(playerSprite.spriteSheet, playerSprite.front);
         }
         
         // Send movement updates to server

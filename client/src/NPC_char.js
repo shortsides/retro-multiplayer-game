@@ -13,40 +13,46 @@ export const innkeeperConfig = {
                     say: ["Hi, I'm the innkeeper. Would you like to hear how I can assist you?"],
                     answers: [
                         {
-                        reply: "Yes, what can you do?",
+                        reply: "Yes",
                         linkTo: "tutorial"
                         },
                         {
-                        reply: "Nope, I already know.",
-                        linkTo: "gotJunk"
+                        reply: "No",
+                        linkTo: "thanks"
                         }
                     ]
                 },
                 tutorial: {
-                say: [
-                    "Okay, I'll tell you what I do.",
-                    "I can make you new weapons.",
-                    "But to do so, I need resources. Some people call it junk, but I can make something out of anything so it ain't junk to me!",
-                    "Collect 'resources' while out in the field, fighting robots, and bring them to me.",
-                    "Especially if you're able to get anything off those damn robots. They have the best materials.",
-                    "So recap: find resources (junk), bring them to me, I'll make you new weapons."
-                ]
+                    question: false,
+                    say: [
+                        "Okay, I'll tell you what I do.",
+                        "I can pour you a nice refreshing beer for 10 coins if you like.",
+                        "I can also make you new weapons from stuff you find out on your adventures."
+                    ],
+                    linkTo: "anythingElse"
                 },
-                gotJunk: {
+                anythingElse: {
                     question: true,
-                    say: ["What've you got for me today?"],
+                    say: [
+                        "Need anything else, darl?"
+                    ],
                     answers: [
                         {
-                        reply: "I've got some stuff.",
-                        callback: (npc) => {}
+                        reply: "Yes",
+                        linkTo: "tutorial"
+                        },
+                        {
+                        reply: "No",
+                        linkTo: "thanks"
                         }
                     ]
                 },
                 thanks: {
+                    question: false,
                     say: [
-                        "Thanks. I'll have something for you in an hour. Come back then.",
                         "Seeya later."
-                    ]
+                    ],
+                    linkTo: false
                 }
             }
         };

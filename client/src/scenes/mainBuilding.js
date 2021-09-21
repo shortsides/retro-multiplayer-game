@@ -1,5 +1,6 @@
 import { SPRITES } from "../../index.js";
 import { socket } from "../../index.js";
+import { playerSprite } from "../../index.js";
 
 import PlayerManager from "../player_manager.js";
 import Anims from "../anim_manager.js";
@@ -32,13 +33,11 @@ export default class SceneMainBuilding extends Phaser.Scene {
 
         let self = this;    
     
+        // Load tileset
         const map = this.make.tilemap({ key: "map" });
-    
-        // Parameters are the name you gave the tileset in Tiled and then the key of the tileset image in
-        // Phaser's cache (i.e. the name you used in preload)
         const tileset = map.addTilesetImage("interior_atlas", "tiles", 32, 32, 1, 2);
     
-        // Parameters: layer name (or index) from Tiled, tileset, x, y
+        // Create layers
         const floorLayer = map.createLayer("Floor", tileset, 0, 0);
         const belowLayer = map.createLayer("Below Player", tileset, 0, 0);
         const worldLayer = map.createLayer("World", tileset, 0, 0);
@@ -69,7 +68,7 @@ export default class SceneMainBuilding extends Phaser.Scene {
         chat.reloadMessages(this, messages);
         this.registry.set('chatMessages', chat.chatMessages);
         
-        // Create player in scene
+        // Create player manager in scene
         this.playerManager = new PlayerManager(this);
 
         // Turn off camera initially until player info is loaded from server
@@ -81,15 +80,13 @@ export default class SceneMainBuilding extends Phaser.Scene {
             Object.keys(players).forEach(function (id) {
                 if (players[id].playerId === socket.id) {
                     self.playerManager.addPlayer(self, players[id], worldLayer, map);
-                    console.log(`spawned ${players[id].name} in ${scene}`)
-                    self.cameras.main.visible = true;
-                    self.cameras.main.fadeIn(500);
                     document.getElementById('chatBox').style.display = 'block';
 
                     // listen for player collisions with inkeeper container
                     self.physics.add.overlap(self.innKeeperContainer, self.playerContainer, function() {
 
-                        self.input.keyboard.on("keydown-SPACE", () => {
+                        let keySpace = self.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+                        keySpace.on("down", () => {
 
                             if (!self.innKeeperContainer.body.embedded && self.innKeeperContainer.body.touching.none) {
                                 return;
@@ -99,11 +96,8 @@ export default class SceneMainBuilding extends Phaser.Scene {
                                 self.dialogueActive = true;
                                 self.innkeeper.setTexture(SPRITES[0].spriteSheet, 20) // face the player
                                 self.innkeeper.readDialogue("hello");
-
-                                setTimeout(function () {
-                                    self.subtitle.setAlpha(0);
-                                    self.dialogueActive = false;
-                                }, 4000)
+                                self.player.anims.stop();
+                                self.player.setTexture(playerSprite.spriteSheet, playerSprite.right);
                                 return;
                             }
                             
@@ -119,10 +113,7 @@ export default class SceneMainBuilding extends Phaser.Scene {
         
         // When a new player joins, spawn them
         socket.on('newPlayer', function (playerInfo) {
-            if (playerInfo.scene !== scene) {
-                return;
-            }
-            if (playerInfo.playerId === socket.id) {
+            if (playerInfo.scene !== scene || playerInfo.playerId === socket.id) {
                 return;
             }
             if (playerInfo.init === true) {
@@ -148,34 +139,13 @@ export default class SceneMainBuilding extends Phaser.Scene {
             self.playerManager.deletePlayer(self, player);
             chat.alertRoom(self, `${player.name} left the game.`)
         })
-
-
-
-        // Create subtitle text for player interaction with NPCs
-        this.subtitle = this.add.text(0, 0, '(subtitle)', {
-            fontFamily: 'monospace',
-            color: '#FFF',
-            stroke: '#000',
-            strokeThickness: 3,
-            align: 'left',
-            padding: 20,
-            opacity: 0,
-            wordWrap: {
-                width: this.cameras.main.width - 500,
-                useAdvancedWrap: true
-            }
-        })
-        .setOrigin(0, 1)
-        .setScrollFactor(0)
-        .setDepth(30)
-        .setAlpha(0)
-        this.subtitle.setPosition(100, (500 + this.subtitle.displayHeight));
-        this.lineIndex = 0;
-
+        
 
         // Create innkeeper NPC
         this.innkeeper = new NPC(this, innkeeperConfig);
 
+        // Create NPC dialogue UI
+        this.innkeeper.createDialogueUI();
 
         // Create inkeeper collision box
         this.innKeeperContainer = this.add.container(550, 470)
