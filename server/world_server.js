@@ -6,14 +6,33 @@ export const SCENES = [
         position: {
             x: 480,
             y: 625
-        }
+        },
+        altEntrances: [
+            {
+                from: 'SceneMainBuildingBasement',
+                x: 470,
+                y: 367
+            },
+            {
+                from: 'SceneMainBuildingFirstFloor',
+                x: 517,
+                y: 367
+            }
+        ]
     },
     {
         name: 'SceneMainBuildingBasement',
         position: {
             x: 400,
             y: 375
-        }
+        },
+        altEntrances: [
+            {
+                from: 'MiniGameSnake',
+                x: 340,
+                y: 535
+            }
+        ]
     },
     {
         name: 'SceneWorld',

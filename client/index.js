@@ -2,6 +2,7 @@ import TitleScene from "./src/scenes/titleScene.js";
 import SceneMainBuilding from "./src/scenes/mainBuilding.js";
 import SceneMainBuildingBasement from "./src/scenes/mainBuildingBasement.js";
 import SceneWorld from "./src/scenes/World.js";
+import MiniGameSnake from "./src/scenes/minigames/snake.js";
 
 // production server config
 //const socket = io('https://quiet-coast-19364.herokuapp.com/');
@@ -149,6 +150,9 @@ let sceneMainBuilding = new SceneMainBuilding();
 let sceneMainBuildingBasement = new SceneMainBuildingBasement();
 let sceneWorld = new SceneWorld();
 
+// create minigames
+let miniGameSnake = new MiniGameSnake();
+
 function initGame() {
 
     playerName = nameInput.value;
@@ -165,6 +169,7 @@ function initGame() {
     game.scene.add('SceneMainBuilding', sceneMainBuilding);
     game.scene.add('SceneMainBuildingBasement', sceneMainBuildingBasement);
     game.scene.add('SceneWorld', sceneWorld);
+    game.scene.add('MiniGameSnake', miniGameSnake);
 
     // start title scene
     game.scene.start('TitleScene');

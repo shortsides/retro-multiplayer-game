@@ -153,15 +153,16 @@ export default class SceneWorld extends Phaser.Scene {
             this.playerContainer.body.moves = false;
             this.cameras.main.fadeOut(2000);
 
-            let self = this;
-
             // change scene
             socket.off();
 
-            let newScene = 'SceneMainBuilding';
-            self.scene.start(newScene, self);
-            self.anims.resumeAll();
-            socket.emit("sceneChange", newScene);
+            let scenes = {
+                new: 'SceneMainBuilding'
+            }
+
+            this.scene.start(scenes.new, this);
+            this.anims.resumeAll();
+            socket.emit("sceneChange", scenes);
 
         }
     

@@ -49,7 +49,7 @@ export default class SceneMainBuildingBasement extends Phaser.Scene {
         const cursors = new Cursors(this);
 
         // Debug graphics
-        //cursors.debugGraphics(this, worldLayer);
+        cursors.debugGraphics(this, worldLayer);
 
         // Create chat window
         this.chat = this.add.dom(16, 16).createFromCache("chat")
@@ -113,6 +113,32 @@ export default class SceneMainBuildingBasement extends Phaser.Scene {
             self.playerManager.deletePlayer(self, playerId, playerName);
             chat.alertRoom(self, `${playerName} left the game.`)
         })
+
+
+        // interacting with snake table
+        this.snakeTable = this.add.container(288, 542);
+        this.snakeTable.setSize(60, 60);
+        this.physics.world.enable(this.snakeTable);
+
+        this.snakeTable.setInteractive();
+
+        this.snakeTable.on('pointerdown', function (pointer) {
+
+            console.log('click');
+
+            // pause player position
+            self.playerContainer.body.moves = false;
+            //self.cameras.main.fadeOut(2000);
+
+            // change scene
+            socket.off();
+
+            let miniGame = 'MiniGameSnake';
+            self.scene.start(miniGame, self);
+            self.anims.resumeAll();
+            socket.emit("startMiniGame", miniGame);
+            
+        })
         
     
     }
@@ -130,10 +156,8 @@ export default class SceneMainBuildingBasement extends Phaser.Scene {
         const playerActions = new PlayerActions(this);
         playerActions.movePlayer(this);
         
-        // check if player has left basemenet
+        // check if player has left basement
         if (405 > this.playerContainer.body.position.x < 415 && this.playerContainer.body.position.y < 360) {
-
-            let self = this;
 
             // pause player position
             this.playerContainer.body.moves = false;
@@ -142,11 +166,13 @@ export default class SceneMainBuildingBasement extends Phaser.Scene {
             // change scene
             socket.off();
 
-            let newScene = 'SceneMainBuilding';
-            self.scene.start(newScene, self);
-            self.anims.resumeAll();
-            socket.emit("sceneChange", newScene);
-
+            let scenes = {
+                old: 'SceneMainBuildingBasement',
+                new: 'SceneMainBuilding'
+            }
+            this.scene.start(scenes.new, this);
+            this.anims.resumeAll();
+            socket.emit("sceneChange", scenes);
 
         }
     

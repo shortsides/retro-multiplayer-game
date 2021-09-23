@@ -19,8 +19,8 @@ export default class PlayerController {
             this.movePlayer(movementData);
         });
 
-        this.client_io.on("sceneChange", newScene => {
-            this.changeScene(newScene);
+        this.client_io.on("sceneChange", scenes => {
+            this.changeScene(scenes);
         })
 
         this.client_io.on("message", message => {
@@ -38,32 +38,41 @@ export default class PlayerController {
     }
 
 
-    changeScene(newScene) {
+    changeScene(scenes) {
 
         // get new scene details e.g. starting position
         let scene;
+        let newPos;
         for (let s of SCENES) {
-            if (s.name === newScene) {
+            if (s.name === scenes.new) {
                 scene = s;
+                if (scenes.old) {
+                    for (let e of s.altEntrances) {
+                        if (e.from === scenes.old) {
+                            newPos = e;
+                        }
+                    }
+                } else {
+                    newPos = scene.position;
+                }
             }
         }
 
-        console.log(`${this.playerName} is moving to ${newScene}`)
-
-        // update player position for new scene
-        this.state.velocity = {};
-        this.state.position = scene.position;
-
+        console.log(`${this.playerName} is moving to ${scenes.new}`)
+        
+        this.state.velocity = {}; // reset velocity
+        this.state.position = newPos; // update player position for new scene
+        
         // emit to all players that the player moved
         this.world.io.sockets.in(this.world.roomName).emit('playerChangedScene', this.state);
 
         let self = this;
 
         // wait 500ms to give the client time to load new scene
-        setTimeout(function () {
+        setTimeout( () => {
             
             // update player scene
-            self.state.scene = newScene;
+            self.state.scene = scenes.new;
 
             // emit current players so new scene can be initialised
             self.client_io.emit('currentPlayers', self.world.players);

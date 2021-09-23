@@ -150,8 +150,6 @@ export default class SceneMainBuilding extends Phaser.Scene {
         // check if player has left main building
         if (this.playerContainer.body.position.y > 640) {
 
-            let self = this;
-
             // pause player position
             this.playerContainer.body.moves = false;
             this.cameras.main.fadeOut(2000);
@@ -159,17 +157,18 @@ export default class SceneMainBuilding extends Phaser.Scene {
             // change scene
             socket.off();
 
-            let newScene = 'SceneWorld';
-            self.scene.start(newScene, self);
-            self.anims.resumeAll();
-            socket.emit("sceneChange", newScene);
+            let scenes = {
+                new: 'SceneWorld'
+            }
+
+            this.scene.start(scenes.new, this);
+            this.anims.resumeAll();
+            socket.emit("sceneChange", scenes);
 
         }
         // check if player has gone into basement
         if (this.playerContainer.body.position.x < 435 && this.playerContainer.body.position.y < 383) {
 
-            let self = this;
-
             // pause player position
             this.playerContainer.body.moves = false;
             this.cameras.main.fadeOut(2000);
@@ -177,10 +176,13 @@ export default class SceneMainBuilding extends Phaser.Scene {
             // change scene
             socket.off();
 
-            let newScene = 'SceneMainBuildingBasement';
-            self.scene.start(newScene, self);
-            self.anims.resumeAll();
-            socket.emit("sceneChange", newScene);
+            let scenes = {
+                new: 'SceneMainBuildingBasement'
+            }
+            
+            this.scene.start(scenes.new, this);
+            this.anims.resumeAll();
+            socket.emit("sceneChange", scenes);
 
         }
     
