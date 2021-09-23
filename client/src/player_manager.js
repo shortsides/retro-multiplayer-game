@@ -91,7 +91,7 @@ export default class PlayerManager extends Phaser.Scene {
         if (playerInfo.scene !== scene) {
             return;
         }
-        
+
         self.otherPlayers.getChildren().forEach(function (otherPlayer) {
             if (playerInfo.playerId === otherPlayer.first.playerId) {
 
@@ -143,11 +143,11 @@ export default class PlayerManager extends Phaser.Scene {
         }
     }
 
-    deletePlayer (self, player) {
+    deletePlayer (self, playerId, playerName) {
         // remove player from otherPlayers
         self.otherPlayers.getChildren().forEach(function (otherPlayer) {
-            if (otherPlayer.first.playerId === player.playerId) {
-                console.log(`${player.name} left the game`);
+            if (otherPlayer.first.playerId === playerId) {
+                console.log(`${playerName} left the game`);
                 otherPlayer.destroy();
             }
         })

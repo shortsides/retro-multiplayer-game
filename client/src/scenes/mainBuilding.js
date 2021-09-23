@@ -82,33 +82,12 @@ export default class SceneMainBuilding extends Phaser.Scene {
                     self.playerManager.addPlayer(self, players[id], worldLayer, map);
                     document.getElementById('chatBox').style.display = 'block';
 
-                    // listen for player collisions with inkeeper container
-                    self.physics.add.overlap(self.innKeeperContainer, self.playerContainer, function() {
-
-                        let keySpace = self.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-                        keySpace.on("down", () => {
-
-                            if (!self.innKeeperContainer.body.embedded && self.innKeeperContainer.body.touching.none) {
-                                return;
-                            }
-                            
-                            if (self.dialogueActive === false) {
-                                self.dialogueActive = true;
-                                self.innkeeper.setTexture(SPRITES[0].spriteSheet, 20) // face the player
-                                self.innkeeper.readDialogue("hello");
-                                self.player.anims.stop();
-                                self.player.setTexture(playerSprite.spriteSheet, playerSprite.right);
-                                return;
-                            }
-                            
-                        });
-                    });
+                    self.afterPlayerSpawn();
 
                 } else {
                     self.playerManager.addOtherPlayers(self, players[id], worldLayer, scene);
                 }
             });
-            self.gameActive = true;
         });
         
         // When a new player joins, spawn them
@@ -135,9 +114,9 @@ export default class SceneMainBuilding extends Phaser.Scene {
         })
 
         // remove players who leave the game
-        socket.on('disconnectPlayer', function(player) {
-            self.playerManager.deletePlayer(self, player);
-            chat.alertRoom(self, `${player.name} left the game.`)
+        socket.on('disconnectPlayer', function(playerId, playerName) {
+            self.playerManager.deletePlayer(self, playerId, playerName);
+            chat.alertRoom(self, `${playerName} left the game.`)
         })
         
 
@@ -148,8 +127,8 @@ export default class SceneMainBuilding extends Phaser.Scene {
         this.innkeeper.createDialogueUI();
 
         // Create inkeeper collision box
-        this.innKeeperContainer = this.add.container(550, 470)
-        this.innKeeperContainer.setSize(80, 40)
+        this.innKeeperContainer = this.add.container(550, 470);
+        this.innKeeperContainer.setSize(80, 40);
         this.physics.world.enable(this.innKeeperContainer);
         
     
@@ -185,9 +164,56 @@ export default class SceneMainBuilding extends Phaser.Scene {
             self.anims.resumeAll();
             socket.emit("sceneChange", newScene);
 
+        }
+        // check if player has gone into basement
+        if (this.playerContainer.body.position.x < 435 && this.playerContainer.body.position.y < 383) {
+
+            let self = this;
+
+            // pause player position
+            this.playerContainer.body.moves = false;
+            this.cameras.main.fadeOut(2000);
+
+            // change scene
+            socket.off();
+
+            let newScene = 'SceneMainBuildingBasement';
+            self.scene.start(newScene, self);
+            self.anims.resumeAll();
+            socket.emit("sceneChange", newScene);
 
         }
     
+    }
+
+    // Function that creates collisions etc that can only be created after player is spawned
+    afterPlayerSpawn() {
+
+        this.gameActive = true;
+
+        let self = this;
+        
+        // listen for player collisions with inkeeper container
+        self.physics.add.overlap(self.innKeeperContainer, self.playerContainer, function() {
+
+            let keySpace = self.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+            keySpace.on("down", () => {
+
+                if (!self.innKeeperContainer.body.embedded && self.innKeeperContainer.body.touching.none) {
+                    return;
+                }
+                
+                if (self.dialogueActive === false) {
+                    self.dialogueActive = true;
+                    self.innkeeper.setTexture(SPRITES[0].spriteSheet, 20) // face the player
+                    self.innkeeper.readDialogue("hello");
+                    self.player.anims.stop();
+                    self.player.setTexture(playerSprite.spriteSheet, playerSprite.right);
+                    return;
+                }
+                
+            });
+        });
     }
 
 }

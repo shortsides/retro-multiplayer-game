@@ -19,6 +19,7 @@ export default class TitleScene extends Phaser.Scene {
         // load main building
         this.load.image("tiles", "../../assets/tilesets/interior_atlas_extruded.png");
         this.load.tilemapTiledJSON("map", "../../assets/tilesets/main-interior.json");
+        this.load.tilemapTiledJSON("map-main-basement", "../../assets/tilesets/main-basement.json");
 
         // load world
         this.load.image("tiles-world", "../../assets/tilesets/world_atlas.png");
@@ -33,7 +34,11 @@ export default class TitleScene extends Phaser.Scene {
         this.load.spritesheet(SPRITES[4].spriteSheet, SPRITES[4].spriteSheetPath, 
         { frameWidth: 16, frameHeight: 20 });
         this.load.spritesheet(SPRITES[8].spriteSheet, SPRITES[8].spriteSheetPath, 
-            { frameWidth: 16, frameHeight: 20 });
+        { frameWidth: 16, frameHeight: 20 });
+        this.load.spritesheet("plane", "../../assets/sprites/plane.png", 
+        { frameWidth: 110, frameHeight: 96 });
+        this.load.spritesheet("propeller", "../../assets/sprites/propeller.png", 
+        { frameWidth: 32, frameHeight: 32 });
 
         // environment animations
         this.load.spritesheet("fire", "../../assets/sprites/fire.png", { frameWidth: 16, frameHeight: 20 });

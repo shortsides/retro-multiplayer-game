@@ -1,17 +1,18 @@
 import { SPRITES } from "../../index.js";
 import { socket } from "../../index.js";
+import { playerSprite } from "../../index.js";
 
 import PlayerManager from "../player_manager.js";
+import Anims from "../anim_manager.js";
 import Cursors from "../cursors.js";
 import PlayerActions from "../player_actions.js";
 import ChatManager from "../chat_manager.js";
 import NPC from "../NPC.js";
-import { propellerConfig } from "../NPC_char.js";
 
-export default class SceneWorld extends Phaser.Scene {
+export default class SceneMainBuildingBasement extends Phaser.Scene {
 
     constructor() {
-        super('SceneWorld');
+        super('SceneMainBuildingBasement');
     }
 
     init() {
@@ -22,22 +23,20 @@ export default class SceneWorld extends Phaser.Scene {
     }
 
     preload() {
-
+        
     }
 
     create() {
 
-        const scene = 'SceneWorld';
+        const scene = 'SceneMainBuildingBasement';
 
-        let self = this;
+        let self = this;    
     
-        const map = this.make.tilemap({ key: "map-world" });
+        // Load tileset
+        const map = this.make.tilemap({ key: "map-main-basement" });
+        const tileset = map.addTilesetImage("interior_atlas", "tiles", 32, 32, 1, 2);
     
-        // Parameters are the name you gave the tileset in Tiled and then the key of the tileset image in
-        // Phaser's cache (i.e. the name you used in preload)
-        const tileset = map.addTilesetImage("atlas_32x", "tiles-world");
-    
-        // Parameters: layer name (or index) from Tiled, tileset, x, y
+        // Create layers
         const floorLayer = map.createLayer("Floor", tileset, 0, 0);
         const belowLayer = map.createLayer("Below Player", tileset, 0, 0);
         const worldLayer = map.createLayer("World", tileset, 0, 0);
@@ -50,15 +49,15 @@ export default class SceneWorld extends Phaser.Scene {
         const cursors = new Cursors(this);
 
         // Debug graphics
-        cursors.debugGraphics(this, worldLayer);
+        //cursors.debugGraphics(this, worldLayer);
 
         // Create chat window
         this.chat = this.add.dom(16, 16).createFromCache("chat")
             .setScrollFactor(0)
             .setDepth(30)
-
+        
         let chat = new ChatManager(this);
-
+        
         // Reload messages from previous scene into chat
         let messages = this.registry.get('chatMessages')
         chat.reloadMessages(this, messages);
@@ -66,10 +65,10 @@ export default class SceneWorld extends Phaser.Scene {
         
         // Create player manager in scene
         this.playerManager = new PlayerManager(this);
-        
+
         // Turn off camera initially until player info is loaded from server
         this.cameras.main.visible = false;
-
+    
         // When this player joins, spawn all current players in room
         socket.on('currentPlayers', function (players) {
             self.otherPlayers = self.physics.add.group();
@@ -80,7 +79,6 @@ export default class SceneWorld extends Phaser.Scene {
 
                     self.afterPlayerSpawn();
 
-
                 } else {
                     self.playerManager.addOtherPlayers(self, players[id], worldLayer, scene);
                 }
@@ -89,13 +87,11 @@ export default class SceneWorld extends Phaser.Scene {
         
         // When a new player joins, spawn them
         socket.on('newPlayer', function (playerInfo) {
-            if (playerInfo.scene !== scene) {
-                return;
-            }
-            if (playerInfo.playerId === socket.id) {
+            if (playerInfo.scene !== scene || playerInfo.playerId === socket.id) {
                 return;
             }
             if (playerInfo.init === true) {
+                console.log(`${playerInfo.name} joined the game`);
                 chat.alertRoom(self, `${playerInfo.name} joined the game.`)
             }
             self.playerManager.addOtherPlayers(self, playerInfo, worldLayer, scene);
@@ -117,43 +113,31 @@ export default class SceneWorld extends Phaser.Scene {
             self.playerManager.deletePlayer(self, playerId, playerName);
             chat.alertRoom(self, `${playerName} left the game.`)
         })
-
-        // Create propeller NPC
-        this.propeller = new NPC(this, propellerConfig);
-
-        // Create NPC dialogue UI
-        this.propeller.createDialogueUI();
-
-        // Create plane and propeller sprites
-        this.planeSprite = this.physics.add.sprite(890, 615, 'plane').setImmovable();
-        this.propellerSprite = this.physics.add.sprite(780, 943, 'propeller');
-
-        // Create propeller collision box
-        this.propellerContainer = this.add.container(this.propeller.x, this.propeller.y);
-        this.propellerContainer.setSize(this.propeller.width, this.propeller.height);
-        this.physics.world.enable(this.propellerContainer);
         
     
     }
 
     update(time, delta) {
 
-        if (!this.gameActive) {
-            return
+        if (!this.gameActive) { // do not run if game is not active
+            return;
+        }
+
+        if (this.dialogueActive) { // do not run if player is interacting with non-player objects
+            return;
         }
 
         const playerActions = new PlayerActions(this);
         playerActions.movePlayer(this);
+        
+        // check if player has left basemenet
+        if (405 > this.playerContainer.body.position.x < 415 && this.playerContainer.body.position.y < 360) {
 
-
-        // check if player has gone into main building
-        if (this.playerContainer.body.position.x > 1155 && this.playerContainer.body.position.y < 590) {
+            let self = this;
 
             // pause player position
             this.playerContainer.body.moves = false;
             this.cameras.main.fadeOut(2000);
-
-            let self = this;
 
             // change scene
             socket.off();
@@ -163,39 +147,18 @@ export default class SceneWorld extends Phaser.Scene {
             self.anims.resumeAll();
             socket.emit("sceneChange", newScene);
 
+
         }
     
     }
-    
+
     // Function that creates collisions etc that can only be created after player is spawned
     afterPlayerSpawn() {
 
         this.gameActive = true;
 
         let self = this;
-
-        // create player collisions with propeller container
-        this.physics.add.overlap(this.propellerContainer, this.playerContainer, function() {
-
-            let keySpace = self.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-            keySpace.on("down", () => {
-
-                if (!self.propellerContainer.body.embedded && self.propellerContainer.body.touching.none) {
-                    return;
-                }
-                
-                if (self.dialogueActive === false) {
-                    self.dialogueActive = true;
-                    self.propeller.readDialogue("hello");
-                    self.player.anims.stop();
-                    return;
-                }
-                
-            });
-        });
-
-        // create player collisions with plane
-        this.physics.add.collider(this.playerContainer, this.planeSprite);
+        
     }
 
 }

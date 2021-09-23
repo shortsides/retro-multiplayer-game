@@ -1,7 +1,6 @@
 import { SPRITES } from "../../index.js";
 
 export const innkeeperConfig = {
-            //scene: scene.scene,
             x: 590,
             y: 470,
             key: 'npc-innkeeper',
@@ -33,9 +32,7 @@ export const innkeeperConfig = {
                 },
                 anythingElse: {
                     question: true,
-                    say: [
-                        "Need anything else, darl?"
-                    ],
+                    say: ["Need anything else, darl?"],
                     answers: [
                         {
                         reply: "Yes",
@@ -56,3 +53,46 @@ export const innkeeperConfig = {
                 }
             }
         };
+
+export const propellerConfig = {
+    x: 780,
+    y: 943,
+    width: 32,
+    height: 32,
+    key: 'npc-propeller',
+    dialogue: {
+        hello: {
+            question: false,
+            say: ["It looks like some sort of propeller..."],
+            linkTo: "actionQuestion"
+        },
+        actionQuestion: {
+            question: true,
+            say: ["Would you like to pick it up?"],
+            answers: [
+                {
+                reply: "Yes",
+                linkTo: "actionYes"
+                },
+                {
+                reply: "No",
+                linkTo: "actionNo"
+                }
+            ]
+        },
+        actionYes: {
+            question: false,
+            say: [
+                "Picked up the propeller!"
+            ],
+            linkTo: false
+        },
+        actionNo: {
+            question: false,
+            say: [
+                "Did not pick up the propeller."
+            ],
+            linkTo: false
+        }
+    }
+}

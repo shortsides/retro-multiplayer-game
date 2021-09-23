@@ -1,5 +1,6 @@
 import TitleScene from "./src/scenes/titleScene.js";
 import SceneMainBuilding from "./src/scenes/mainBuilding.js";
+import SceneMainBuildingBasement from "./src/scenes/mainBuildingBasement.js";
 import SceneWorld from "./src/scenes/World.js";
 
 // production server config
@@ -145,6 +146,7 @@ let config = {
 // create scenes
 let titleScene = new TitleScene();
 let sceneMainBuilding = new SceneMainBuilding();
+let sceneMainBuildingBasement = new SceneMainBuildingBasement();
 let sceneWorld = new SceneWorld();
 
 function initGame() {
@@ -161,13 +163,14 @@ function initGame() {
     let game = new Phaser.Game(config)
     game.scene.add('TitleScene', titleScene);
     game.scene.add('SceneMainBuilding', sceneMainBuilding);
+    game.scene.add('SceneMainBuildingBasement', sceneMainBuildingBasement);
     game.scene.add('SceneWorld', sceneWorld);
 
     // start title scene
     game.scene.start('TitleScene');
 
     initialScreen.style.display = 'none';
-    
+
 }
 
 function handleServerFull(serverName) {
