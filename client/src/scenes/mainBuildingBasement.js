@@ -133,10 +133,10 @@ export default class SceneMainBuildingBasement extends Phaser.Scene {
             // change scene
             socket.off();
 
-            let miniGame = 'MiniGameSnake';
-            self.scene.start(miniGame, self);
+            let miniGameName = 'MiniGameSnake';
+            self.scene.start(miniGameName, self);
             self.anims.resumeAll();
-            socket.emit("startMiniGame", miniGame);
+            socket.emit("startMiniGame", miniGameName);
             
         })
         

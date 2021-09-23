@@ -30,16 +30,8 @@ export default class MiniGameSnake extends Phaser.Scene {
         })
         .setOrigin(0.5);
 
-        let exitButton = this.add.rectangle(754, 16, 30, 30, 0xa6140a)
-        .setStrokeStyle(4, 0xffffff)
-        .setOrigin(0,0)
-        .setInteractive()
 
-
-        exitButton.on('pointerdown', function (pointer) {
-
-            console.log('click');
-
+        function exitGame() {
             // change scene
             socket.off();
 
@@ -50,8 +42,7 @@ export default class MiniGameSnake extends Phaser.Scene {
             self.scene.start(scenes.new, self);
             self.anims.resumeAll();
             socket.emit("sceneChange", scenes);
-            
-        })
+        }
 
         // create game html elements
         this.snakeGame = this.add.dom(screenCenterX, screenCenterY).createFromCache("snakeGame")
@@ -74,8 +65,8 @@ export default class MiniGameSnake extends Phaser.Scene {
         socket.on('countdown', handleCountdown);
         socket.on('joinedGame', handleJoinedGame);
         
-        const gameScreen = document.getElementById('gameScreen');
-        const initialScreen = document.getElementById('initialScreen');
+        const gameScreen = document.getElementById('MiniGameScreen');
+        const initialScreen = document.getElementById('MiniGameInitialScreen');
         const newGameBtn = document.getElementById('newGameButton');
         const joinGameBtn = document.getElementById('joinGameButton');
         const gameCodeInput = document.getElementById('gameCodeInput');
@@ -83,6 +74,7 @@ export default class MiniGameSnake extends Phaser.Scene {
         const gameHeader = document.getElementById('gameHeader');
         const gameCodeH1 = document.getElementById('gameCodeH1');
         const rematchButton = document.getElementById('rematchButton');
+        const exitButton = document.getElementById('exitButton');
         const startBtn = document.getElementById('startButton');
         const gameConsole = document.getElementById('gameConsole');
         const livesCount = document.getElementById('livesCount');
@@ -91,6 +83,7 @@ export default class MiniGameSnake extends Phaser.Scene {
         newGameBtn.addEventListener('click', newGame);
         joinGameBtn.addEventListener('click', joinGame);
         rematchButton.addEventListener('click', rematchGame);
+        exitButton.addEventListener('click', exitGame);
         startBtn.addEventListener('click', startGame);
         
         let canvas, ctx;
@@ -122,12 +115,12 @@ export default class MiniGameSnake extends Phaser.Scene {
             initialScreen.style.display = 'none';
             gameScreen.style.display = 'block';
         
-            canvas = document.getElementById('canvas');
+            canvas = document.getElementById('MiniGameCanvas');
             ctx = canvas.getContext('2d');
         
             // define background size
-            canvas.width = 800;
-            canvas.height = 600;
+            canvas.width = 400;
+            canvas.height = 400;
         
             // draw background
             ctx.fillStyle = BG_COLOUR;
@@ -231,6 +224,7 @@ export default class MiniGameSnake extends Phaser.Scene {
             }
             gameActive = false;
             rematchButton.style.display = 'block';
+            exitButton.style.display = 'block';
             gameHeader.innerHTML = "GAME OVER";
         
             if (data.winner === playerNumber) {
@@ -262,6 +256,7 @@ export default class MiniGameSnake extends Phaser.Scene {
         
         function handleGameStart() {
             init();
+            exitButton.style.display = 'none';
         }
         
         function reset() {

@@ -1,6 +1,7 @@
 import * as http from 'http';
 import * as socket_io from 'socket.io';
 
+import MiniGameController from './miniGame_server.js';
 import WorldController from './world_server.js';
 
 
@@ -58,6 +59,12 @@ function Main() {
             }
             
             world.playerJoin(playerName, client);
+
+
+            // create game room for minigames
+            client.on("startMiniGame", miniGameName => {
+                const miniGame = new MiniGameController(io, client, roomName);
+            })
 
     
             // remove player on disconnect

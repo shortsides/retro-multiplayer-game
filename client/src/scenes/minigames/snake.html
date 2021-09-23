@@ -12,7 +12,7 @@
   <section class="vh-100">
     <div class="container h-100">
 
-      <div id="initialScreen" class="h-100">
+      <div id="MiniGameInitialScreen" class="h-100">
         <div class="d-flex flex-column align-items-center justify-content-center h-100">
             <h1>Multiplayer Snake</h1>
             <br>
@@ -31,7 +31,7 @@
       
 
 
-      <div id="gameScreen" class="h-100">
+      <div id="MiniGameScreen" class="h-100">
         <div class="d-flex flex-column align-items-center justify-content-center h-100">
 
           <h1 id="gameCodeH1">Your game code is: <span id="gameCodeDisplay"></span></h1>
@@ -57,7 +57,7 @@
             </div>
           </nav>
 
-          <canvas id="canvas"></canvas>
+          <canvas id="MiniGameCanvas"></canvas>
 
           <!--GAME CONSOLE / LOG-->
           <nav class="navbar navbar-expand-sm navbar-dark bg-dark" style="width: 600px;">
@@ -75,6 +75,9 @@
                   </li>
                   <li class="nav-item active">
                     <button type="submit" class="nav-link btn btn-success" id="rematchButton">Rematch</button>
+                  </li>
+                  <li class="nav-item active">
+                    <button type="submit" class="nav-link btn btn-success" id="exitButton">Exit</button>
                   </li>
               </ul>
             </div>
