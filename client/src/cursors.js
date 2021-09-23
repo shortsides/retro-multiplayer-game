@@ -31,11 +31,14 @@ export default class Cursors extends Phaser.Scene {
         // Toggle chat visibility using "Shift" key
         self.cursors.shift.on("down", () => {
             self.chatArea = document.getElementById('messages');
+            self.chatBox = document.getElementById('chatBox')
             if (self.chatArea.style.display === 'block') {
                 self.chatArea.style.display = 'none';
+                self.chatBox.style.opacity = 0.4;
             } else {
                 self.chatArea.style.display = 'block';
                 self.chatArea.scrollTop = self.chatArea.scrollHeight;
+                self.chatBox.style.opacity = 0.8;
             }
         })
     }
