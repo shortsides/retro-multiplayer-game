@@ -8,7 +8,7 @@ export default class PlayerManager extends Phaser.Scene {
         super(scene);
     }
 
-    addPlayer (self, playerInfo, worldLayer, map) {
+    addPlayer(self, playerInfo, worldLayer, map) {
 
         // create player container for sprite and floating name
         self.playerContainer = self.add.container(playerInfo.position.x, playerInfo.position.y)
@@ -45,7 +45,7 @@ export default class PlayerManager extends Phaser.Scene {
 
     }
 
-    addOtherPlayers (self, playerInfo, worldLayer, scene) {
+    addOtherPlayers(self, playerInfo, worldLayer, scene) {
 
         if (playerInfo.scene !== scene) {
             return;
@@ -86,7 +86,7 @@ export default class PlayerManager extends Phaser.Scene {
 
     }
 
-    moveOtherPlayers (self, playerInfo, scene) {
+    moveOtherPlayers(self, playerInfo, scene) {
 
         if (playerInfo.scene !== scene) {
             return;
@@ -126,6 +126,47 @@ export default class PlayerManager extends Phaser.Scene {
             }
 
         })
+    }
+
+    updateOtherPlayerPositions(game, playerInfo, scene) {
+        if (playerInfo.scene !== scene) {
+            return;
+        }
+        let self = this;
+        game.otherPlayers.getChildren().forEach(function (otherPlayer) {
+            if (playerInfo.playerId === otherPlayer.first.playerId) {
+                
+                //self.interpolatePositions(playerInfo.position, otherPlayer)
+
+                otherPlayer.setPosition(playerInfo.position.x + 11, playerInfo.position.y + 15);
+            }
+        })
+
+    }
+
+    // TBC
+    interpolatePositions(truePos, otherPlayer) {
+
+        let trueX = truePos.x;
+        let trueY = truePos.y;
+
+        let deltaX = trueX - otherPlayer.body.position.x; // need to keep checking this as it changes?
+        let deltaY = trueY - otherPlayer.body.position.y;
+
+        if (otherPlayer.body.position.x < trueX) { 
+            otherPlayer.body.setVelocityX(170)
+        }
+        if (otherPlayer.body.position.x > trueX) { 
+            otherPlayer.body.setVelocityX(-170)
+        }
+        if (otherPlayer.body.position.y < trueY) { 
+            otherPlayer.body.setVelocityY(170)
+        }
+        if (otherPlayer.body.position.y > trueY) { 
+            otherPlayer.body.setVelocityY(-170)
+        }
+
+
     }
 
     changeScene (self, player, scene) {

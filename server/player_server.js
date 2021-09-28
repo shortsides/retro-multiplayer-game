@@ -9,6 +9,8 @@ export default class PlayerController {
         this.state = this.initPlayerState();
         
         this.setupSockets();
+
+        this.setUpdateRate(6);
     }
 
 
@@ -27,13 +29,29 @@ export default class PlayerController {
         })
     }
 
+    setUpdateRate(hz) {
+        this.update_rate = hz;
+      
+        clearInterval(this.update_interval);
+
+        let self = this;
+        this.update_interval = setInterval(() => {
+            self.sendPlayerState();
+        }, 1000 / this.update_rate);
+    }
+
+    sendPlayerState() {
+        // Broadcast the player state to all the clients.
+        this.world.io.sockets.in(this.world.roomName).emit('updatePlayerPositions', this.state);
+    }
+
 
     // when a player moves, update the player velocity & position
     movePlayer(movementData) {
-            this.state.velocity = movementData.velocity;
-            this.state.position = movementData.position;
-            // emit new player state to all players
-            this.world.io.sockets.in(this.world.roomName).emit('playerMoved', this.state);
+        this.state.velocity = movementData.velocity;
+        this.state.position = movementData.position;
+        // emit new player state to all players
+        this.world.io.sockets.in(this.world.roomName).emit('playerMoved', this.state);
     }
 
 

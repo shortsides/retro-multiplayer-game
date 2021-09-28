@@ -15,6 +15,7 @@ export default class PlayerActions extends Phaser.Scene {
 
         const speed = 175;
         const prevVelocity = self.playerContainer.body.velocity.clone();
+        const prevPosition = self.playerContainer.body.position.clone();
     
         // if player has stopped in the last frame, tell server velocity is 0
         if (!self.stoppedLog && self.playerContainer.body.velocity.x === 0 && self.playerContainer.body.velocity.y === 0) {
@@ -62,6 +63,8 @@ export default class PlayerActions extends Phaser.Scene {
             position: self.playerContainer.body.position
         }
         if (prevVelocity.x !== self.playerContainer.body.velocity.x || prevVelocity.y !== self.playerContainer.body.velocity.y) {
+            socket.emit('playerMovement', movementData);
+        } else if (prevVelocity.x !== self.playerContainer.body.position.x || prevVelocity.y !== self.playerContainer.body.position.y) {
             socket.emit('playerMovement', movementData);
         }
     }
