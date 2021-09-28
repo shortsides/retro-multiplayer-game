@@ -2,9 +2,8 @@ import { SCENES } from "./world_server.js";
 
 export default class PlayerController {
 
-    constructor(client, playerName, world) {
+    constructor(client, world) {
         this.client_io = client;
-        this.playerName = playerName;
         this.world = world;
 
         this.state = this.initPlayerState();
@@ -58,7 +57,7 @@ export default class PlayerController {
             }
         }
 
-        console.log(`${this.playerName} is moving to ${scenes.new}`)
+        console.log(`${this.client_io.name} is moving to ${scenes.new}`)
         
         this.state.velocity = {}; // reset velocity
         this.state.position = newPos; // update player position for new scene
@@ -95,7 +94,7 @@ export default class PlayerController {
         return {
             playerId: this.client_io.id,
             roomName: this.world.roomName,
-            name: this.playerName,
+            name: this.client_io.name,
             velocity: {},
             scene: 'SceneMainBuilding',
             init: true,

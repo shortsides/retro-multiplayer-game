@@ -115,30 +115,13 @@ export default class SceneMainBuildingBasement extends Phaser.Scene {
         })
 
 
-        // interacting with snake table
-        this.snakeTable = this.add.container(288, 542);
-        this.snakeTable.setSize(60, 60);
-        this.physics.world.enable(this.snakeTable);
+        // create snake arcade machine / box
+        this.snakeSprite = this.physics.add.sprite(310, 470, 'snake-arcade')
+        .setScale(0.8).setImmovable();
 
-        this.snakeTable.setInteractive();
-
-        this.snakeTable.on('pointerdown', function (pointer) {
-
-            console.log('click');
-
-            // pause player position
-            self.playerContainer.body.moves = false;
-            //self.cameras.main.fadeOut(2000);
-
-            // change scene
-            socket.off();
-
-            let miniGameName = 'MiniGameSnake';
-            self.scene.start(miniGameName, self);
-            self.anims.resumeAll();
-            socket.emit("startMiniGame", miniGameName);
-            
-        })
+        this.snakeBox = this.add.container(310, 470);
+        this.snakeBox.setSize(40, 60);
+        this.physics.world.enable(this.snakeBox);
         
     
     }
@@ -184,6 +167,38 @@ export default class SceneMainBuildingBasement extends Phaser.Scene {
         this.gameActive = true;
 
         let self = this;
+
+        // create player collision & interaction with snake game
+        this.physics.add.collider(this.playerContainer, this.snakeSprite);
+
+        this.physics.add.overlap(this.snakeBox, this.playerContainer, function() {
+
+            let keySpace = self.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+            keySpace.on("down", () => {
+
+                if (this.dialogueActive) {
+                    return;
+                }
+
+                if (!self.snakeBox.body.embedded && self.snakeBox.body.touching.none) {
+                    return;
+                }
+                
+                // pause player position
+                self.playerContainer.body.moves = false;
+                //self.cameras.main.fadeOut(2000);
+
+                // change scene
+                socket.off();
+
+                let miniGameName = 'MiniGameSnake';
+                self.scene.start(miniGameName, self);
+                self.anims.resumeAll();
+                socket.emit("joinMiniGame", miniGameName);
+                this.dialogueActive = true;
+                
+            });
+        });
         
     }
 

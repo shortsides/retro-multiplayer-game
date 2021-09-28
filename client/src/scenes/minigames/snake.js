@@ -1,4 +1,4 @@
-import { socket } from "../../../index.js";
+import { playerName, socket } from "../../../index.js";
 
 export default class MiniGameSnake extends Phaser.Scene {
 
@@ -6,13 +6,8 @@ export default class MiniGameSnake extends Phaser.Scene {
         super('MiniGameSnake');
     }
 
-    init() {
-
-    }
-
     preload() {
-        // load game html elements
-        this.load.html("snakeGame", "src/scenes/minigames/snake.html");
+
     }
 
     create() {
@@ -23,13 +18,6 @@ export default class MiniGameSnake extends Phaser.Scene {
 
         const screenCenterX = this.cameras.main.worldView.x + this.cameras.main.width / 2;
         const screenCenterY = this.cameras.main.worldView.y + this.cameras.main.height / 2;
-
-        let text = this.add.text(screenCenterX, 16, 'Snake', {
-            font: "18px Monospace", 
-            fill: "#fff"
-        })
-        .setOrigin(0.5);
-
 
         function exitGame() {
             // change scene
@@ -42,73 +30,58 @@ export default class MiniGameSnake extends Phaser.Scene {
             self.scene.start(scenes.new, self);
             self.anims.resumeAll();
             socket.emit("sceneChange", scenes);
+            socket.emit("leaveMiniGame");
         }
 
         // create game html elements
-        this.snakeGame = this.add.dom(screenCenterX, screenCenterY).createFromCache("snakeGame")
+        this.snakeGame = this.add.dom(0, 0).createFromCache("snakeGame")
             .setScrollFactor(0);
 
+
+        // load titlescreen
+        this.titleScreen = this.add.image(0, 0, 'title-snake').setOrigin(0,0);
+
         const BG_COLOUR = '#231f20';
-        const SNAKE_COLOURS = ['Silver', 'Red', 'Blue', 'Pink', 'Purple'];
+        const SNAKE_COLOURS = ['SILVER', 'RED', 'BLUE', 'PINK', 'PURPLE'];
         const FOOD_COLOUR = '#e66916';
         const FOOD2_COLOUR = '#3CB371';
-        const HEART = '❤️';
+        const HEART = '♡';
 
 
         socket.on('init', handleInit);
         socket.on('gameState', handleGameState);
         socket.on('gameOver', handleGameOver);
-        socket.on('gameCode', handleGameCode);
-        socket.on('unknownGame', handleUnknownGame);
-        socket.on('tooManyPlayers', handleTooManyPlayers);
         socket.on('gameStart', handleGameStart);
         socket.on('countdown', handleCountdown);
         socket.on('joinedGame', handleJoinedGame);
+        socket.on('playerLeft', handlePlayerLeft);
         
         const gameScreen = document.getElementById('MiniGameScreen');
         const initialScreen = document.getElementById('MiniGameInitialScreen');
-        const newGameBtn = document.getElementById('newGameButton');
-        const joinGameBtn = document.getElementById('joinGameButton');
-        const gameCodeInput = document.getElementById('gameCodeInput');
-        const gameCodeDisplay = document.getElementById('gameCodeDisplay');
         const gameHeader = document.getElementById('gameHeader');
-        const gameCodeH1 = document.getElementById('gameCodeH1');
-        const rematchButton = document.getElementById('rematchButton');
         const exitButton = document.getElementById('exitButton');
+        const exitButton2 = document.getElementById('exitButton2');
         const startBtn = document.getElementById('startButton');
         const gameConsole = document.getElementById('gameConsole');
         const livesCount = document.getElementById('livesCount');
         const pointsCount = document.getElementById('pointsCount');
-        
-        newGameBtn.addEventListener('click', newGame);
-        joinGameBtn.addEventListener('click', joinGame);
-        rematchButton.addEventListener('click', rematchGame);
+        const playersInLobby = document.getElementById('playersInLobby');
+        const waitingMessage = document.getElementById('waitingMessage');
+
         exitButton.addEventListener('click', exitGame);
+        exitButton2.addEventListener('click', exitGame);
         startBtn.addEventListener('click', startGame);
         
         let canvas, ctx;
         let playerNumber;
         let gameActive = false;
+
+        initialScreen.style.display = 'block';
         
-        function newGame() {
-            socket.emit('newGame');
-            init();
-        }
-        
-        function joinGame(){
-            const code = gameCodeInput.value;
-            socket.emit('joinGame', code);
-            init();
-        }
-        
-        function rematchGame() {
-            const code = gameCodeDisplay.innerText;
-            socket.emit('rematch', code);
-        }
-        
+
         function startGame() {
-            const code = gameCodeDisplay.innerText;
-            socket.emit('startGame', code);
+            socket.emit('startGame', 'MiniGameSnake');
+            init();
         }
         
         function init() {
@@ -119,23 +92,20 @@ export default class MiniGameSnake extends Phaser.Scene {
             ctx = canvas.getContext('2d');
         
             // define background size
-            canvas.width = 400;
-            canvas.height = 400;
+            canvas.width = 540;
+            canvas.height = 540;
         
             // draw background
             ctx.fillStyle = BG_COLOUR;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         
             // activate game
-            document.addEventListener('keydown', keydown);
             gameActive = true;
         
-            // hide rematch button
-            rematchButton.style.display = 'none';
         }
         
         function keydown(e) {
-            socket.emit('keydown', e.keyCode);
+            socket.emit('keydown', e.keyCode, playerNumber);
         }
         
         function paintGame(state) {
@@ -161,32 +131,31 @@ export default class MiniGameSnake extends Phaser.Scene {
             }
         
             // display any messages
-            gameConsole.innerText = state.message;
+            //gameConsole.innerText = state.message;
         
             // update heading for each player
-            gameCodeH1.style.display = "none";
             if (playerNumber === 1) {
-                gameHeader.innerText = `${SNAKE_COLOURS[0]} Player`;
+                gameHeader.innerText = `${SNAKE_COLOURS[0]} PLAYER`;
                 //gameHeader.style.color = SNAKE_COLOURS[0];
                 livesCount.innerText = `${HEART.repeat(state.players[0].lives)}`;
                 pointsCount.innerText = state.players[0].points;
             } else if (playerNumber === 2) {
-                gameHeader.innerText = `${SNAKE_COLOURS[1]} Player`;
+                gameHeader.innerText = `${SNAKE_COLOURS[1]} PLAYER`;
                 //gameHeader.style.color = SNAKE_COLOURS[1];
                 livesCount.innerText = `${HEART.repeat(state.players[1].lives)}`;
                 pointsCount.innerText = state.players[0].points;
             } else if (playerNumber === 3) {
-                gameHeader.innerText = `${SNAKE_COLOURS[2]} Player`;
+                gameHeader.innerText = `${SNAKE_COLOURS[2]} PLAYER`;
                 //gameHeader.style.color = SNAKE_COLOURS[2];
                 livesCount.innerText = `${HEART.repeat(state.players[2].lives)}`;
                 pointsCount.innerText = state.players[0].points;
             } else if (playerNumber === 4) {
-                gameHeader.innerText = `${SNAKE_COLOURS[3]} Player`;
+                gameHeader.innerText = `${SNAKE_COLOURS[3]} PLAYER`;
                 //gameHeader.style.color = SNAKE_COLOURS[3];
                 livesCount.innerText = `${HEART.repeat(state.players[3].lives)}`;
                 pointsCount.innerText = state.players[0].points;
             } else if (playerNumber === 5) {
-                gameHeader.innerText = `${SNAKE_COLOURS[4]} Player`;
+                gameHeader.innerText = `${SNAKE_COLOURS[4]} PLAYER`;
                 //gameHeader.style.color = SNAKE_COLOURS[4];
                 livesCount.innerText = `${HEART.repeat(state.players[4].lives)}`;
                 pointsCount.innerText = state.players[0].points;
@@ -205,9 +174,12 @@ export default class MiniGameSnake extends Phaser.Scene {
             }
         }
         
-        function handleInit(number) {
+        function handleInit(number, player_list) {
             playerNumber = number;
-            gameHeader.innerText = `${SNAKE_COLOURS[playerNumber - 1]} Player`;
+            gameHeader.innerText = `${SNAKE_COLOURS[playerNumber - 1]} PLAYER`;
+            
+            updatePlayerLobby(player_list);
+
         }
         
         function handleGameState(gameState) {
@@ -215,6 +187,8 @@ export default class MiniGameSnake extends Phaser.Scene {
                 console.log('game not active');
                 return;
             }
+            document.addEventListener('keydown', keydown);
+
             requestAnimationFrame(() => paintGame(gameState));
         }
         
@@ -222,64 +196,76 @@ export default class MiniGameSnake extends Phaser.Scene {
             if (!gameActive) {
                 return;
             }
-            gameActive = false;
-            rematchButton.style.display = 'block';
-            exitButton.style.display = 'block';
-            gameHeader.innerHTML = "GAME OVER";
+            
+            exitButton2.style.display = 'block';
+            gameConsole.innerText = 'GAME OVER';
         
             if (data.winner === playerNumber) {
-                gameConsole.innerText = 'You Win!'
+                gameConsole.innerText = 'YOU WIN!';
             } else {
-                gameConsole.innerText = `${SNAKE_COLOURS[data.winner - 1]} Player Wins`
+                gameConsole.innerText = `${SNAKE_COLOURS[data.winner - 1]} PLAYER WINS`;
             }
+
+            resetGame();
+
         }
-        
-        function handleGameCode(gameCode) {
-            // display game code to user
-            gameCodeDisplay.innerText = gameCode;
+    
+        function handleJoinedGame(newPlayer, player_list) {
+            
+            if (newPlayer.name === playerName) {
+                return;
+            }
+
+            updatePlayerLobby(player_list);
+            
         }
-        
-        function handleUnknownGame() {
-            reset();
-            alert("Unknown game code");
+
+        function handlePlayerLeft(player, player_list) {
+
+            if (player.name === playerName) {
+                return;
+            }
+            updatePlayerLobby(player_list);
         }
-        
-        function handleTooManyPlayers() {
-            reset();
-            alert("This game is already in progress");
-        }
-        
-        function handleJoinedGame(playerNum) {
-            gameConsole.innerText = `${SNAKE_COLOURS[playerNum - 1]} player has joined. Total players ${playerNum}.`;
-            startBtn.style.display = 'block'; // show start button
+
+        function updatePlayerLobby(player_list) {
+            playersInLobby.innerHTML = '';
+            for (let p of player_list) {
+                let el = document.createElement('tr');
+                el.innerText = p.name;
+                playersInLobby.appendChild(el);
+            }
+            if (player_list.length > 1) {
+                startBtn.style.display = 'block'; // show start button
+                waitingMessage.style.display = 'none';
+            } else {
+                waitingMessage.style.display = 'block';
+            }
         }
         
         function handleGameStart() {
             init();
-            exitButton.style.display = 'none';
+            exitButton2.style.display = 'none';
         }
         
-        function reset() {
+        function resetGame() {
             playerNumber = null;
-            gameCodeInput.value = "";
-            gameCodeDisplay.innerText = "";
-            initialScreen.style.display = "block";
-            gameScreen.style.display = "none";
+            gameActive = false;
+            document.removeEventListener('keydown', keydown);
         }
         
         function handleCountdown() {
             startBtn.style.display = 'none'; // hide start button
-            gameCodeH1.style.display = 'none';
-            gameConsole.innerText = 'Starting Game...';
+            gameConsole.innerText = 'STARTING GAME...';
             // countdown timer
             var timeleft = 5;
             var downloadTimer = setInterval(function(){
               if(timeleft <= 0){
                 clearInterval(downloadTimer);
-                gameConsole.innerText = '...';
+                gameConsole.innerText = '';
               } else {
                 //gameHeader.innerHTML = timeleft;
-                gameConsole.innerText = 'Starting Game... ' + timeleft;
+                gameConsole.innerText = 'STARTING GAME... ' + timeleft;
               }
               timeleft -= 1;
             }, 1000);

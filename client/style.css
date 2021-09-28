@@ -2,6 +2,15 @@ html, body {
   margin: 0;
   padding: 0;
   background-color: rgb(53, 54, 58);
+  font-family: monospace;
+  font-size: 16px;
+}
+
+.center {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 #game-container {
@@ -12,13 +21,10 @@ html, body {
   justify-content: center;
 }
 
-#game-container>canvas {
-  border-radius: 5px;
-}
-
 #gameTitle {
   color: white;
 }
+
 
 #initialScreenMessage {
   color: white;
@@ -46,4 +52,124 @@ html, body {
   height: 150px;
   padding: 10px 0px 10px 10px;
   overflow: scroll;
+}
+
+/* Mini Game Lobby Screen */
+#MiniGameInitialScreen {
+  display: none;
+  width: 800px;
+  height: 600px;
+  left: 0;
+  top: 0;
+}
+
+#playersInLobby {
+  margin-top: 300px;
+  width: 100%;
+}
+
+#playersInLobby tr {
+  font-size: 18px;
+  font-weight: bold;
+  width: 100%;
+  text-align: center;
+  padding: 10px, 10px, 10px, 10px;
+  color: #ff8000;
+}
+
+
+#waitingMessage {
+  width: 100%;
+  margin-top: 1px;
+  text-align: center;
+  color: #ff8000;
+}
+
+#startButton {
+  display: none;
+  margin-top: 10px;
+}
+
+#exitButton {
+  position: fixed;
+  left: 16px;
+  top: 16px;
+}
+
+
+/* Mini Game Screen */
+#MiniGameScreen {
+  display: none;
+  background-color: black;
+  width: 800px;
+  height: 600px;
+}
+
+#canvasWrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#MiniGameCanvas {
+  border: 12px solid #779691;
+  border-radius: 2px;
+}
+
+#HUD-left {
+  color: white;
+  position: absolute;
+  width: 118px;
+  top: 18px;
+  text-align: center;
+}
+
+#gameHeader {
+  position: absolute;
+  top: 50px;
+  width: 100%;
+}
+
+#HUD-right {
+  color: white;
+  position: absolute;
+  width: 118px;
+  top: 18px;
+  right: 0px;
+  text-align: center;
+}
+
+
+/* End Game Screen */
+#EndGameScreen {
+  text-align: center;
+  position: absolute;
+  top: 0px;
+  width: 100%;
+  height: 100%;
+  color: white;
+}
+
+#gameConsole {
+  width: 100%;
+  font-size: 25px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+#exitButton2div {
+  position: absolute;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  top: 330px;
+}
+
+#exitButton2 {
+  width: 12%;
 }

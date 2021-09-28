@@ -1,7 +1,6 @@
 import * as http from 'http';
 import * as socket_io from 'socket.io';
 
-import MiniGameController from './miniGame_server.js';
 import WorldController from './world_server.js';
 
 
@@ -21,7 +20,7 @@ function Main() {
 
     const ROOM_MAX_CAPACITY = 8;
 
-    let rooms = []; // tracks active rooms/worlds on server
+    let worlds = []; // tracks active world rooms on server
 
     io.on("connection", client => {
 
@@ -30,9 +29,9 @@ function Main() {
     
         function handlePlayGame(playerName) {
     
-            const roomName = getRoom();
+            const roomName = getRoom(worlds, 'World', ROOM_MAX_CAPACITY);
     
-            const playerNum = getPlayerNum(roomName);
+            const playerNum = getPlayerNum(roomName, ROOM_MAX_CAPACITY);
     
             // optional check for if the number of rooms is finite
             if (playerNum === false) {
@@ -42,28 +41,31 @@ function Main() {
 
             // create any new rooms required
             let world;
-            if (rooms.length === 0) {
+            if (worlds.length === 0) {
                 world = new WorldController(io, roomName);
-                rooms.push(world);
+                worlds.push(world);
                 console.log(`${roomName} was initiated`)
             } else {
-                Object.keys(rooms).forEach(function (i) {
-                    if (rooms[i].roomName === roomName) {
-                        world = rooms[i];
+                Object.keys(worlds).forEach(function (i) {
+                    if (worlds[i].roomName === roomName) {
+                        world = worlds[i];
                     } else {
                         world = new WorldController(io, roomName);
-                        rooms.push(world);
+                        worlds.push(world);
                         console.log(`${roomName} was initiated`)
                     }
                 });
             }
-            
-            world.playerJoin(playerName, client);
+            client.name = playerName;
+            world.playerJoin(client);
 
 
-            // create game room for minigames
-            client.on("startMiniGame", miniGameName => {
-                const miniGame = new MiniGameController(io, client, roomName);
+            // handle minigames
+            client.on("joinMiniGame", miniGameName => {
+                setTimeout(() => { 
+                    world.joinMiniGame(miniGameName, client, playerName);
+                }, 500);
+                
             })
 
     
@@ -73,11 +75,11 @@ function Main() {
                 console.log(`${playerName} has disconnected`)
     
                 // delete player from room;
-                world.disconnectPlayer(client.id);
+                world.disconnectPlayer(client);
                 io.sockets.in(roomName).emit('disconnectPlayer', client.id, playerName);
     
                 // shut down room if empty
-                shutDownRoom(roomName);
+                shutDownRoom(roomName, worlds, ROOM_MAX_CAPACITY);
             })
         
         }
@@ -86,13 +88,13 @@ function Main() {
 
 
     // Gets the next available room, or creates one if none available
-    function getRoom() {
+    function getRoom(rooms, type, maxCapacity) {
 
         let roomNum = 1;
         
         for (let i = 0; i < rooms.length; i++) {
 
-            let playersInRoom = getPlayerNum(`World ${roomNum}`);
+            let playersInRoom = getPlayerNum(`${type} ${roomNum}`, maxCapacity);
 
             // if room is full, check next room
             if (!playersInRoom) {
@@ -101,21 +103,21 @@ function Main() {
 
         }
 
-        const roomName = `World ${roomNum}`;
+        const roomName = `${type} ${roomNum}`;
 
         return roomName;
 
     }
 
     // Gets the number of players in the room, but returns false if the room is full
-    function getPlayerNum(roomName) {
+    function getPlayerNum(roomName, maxCapacity) {
         const room = io.sockets.adapter.rooms.get(roomName);
 
         if (room) {
 
             const playerNum = room.size + 1;
 
-            if (playerNum > ROOM_MAX_CAPACITY) {
+            if (playerNum > maxCapacity) {
                 return false;
             } 
             
@@ -127,12 +129,11 @@ function Main() {
     }
 
     // Shuts down room if no players
-    function shutDownRoom(roomName) {
+    function shutDownRoom(roomName, rooms, maxCapacity) {
 
-        let playersInRoom = getPlayerNum(roomName);
+        let playersInRoom = getPlayerNum(roomName, maxCapacity);
 
         if (playersInRoom < 2) {
-            //delete rooms[roomName];
 
             for (let room of rooms) {
                 if (room.roomName === roomName) {
@@ -147,8 +148,7 @@ function Main() {
     }
 
 
-}  
-
+}
 
 
 Main();

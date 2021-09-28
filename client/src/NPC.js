@@ -131,6 +131,7 @@ export default class NPC extends Phaser.GameObjects.Sprite {
         this.scene.subtitleBoxNo.isStroked = false;
 
         let keyDown = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
+        let keyUp = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP)
         keyDown.on("down", () => {
 
             if (Phaser.Input.Keyboard.JustDown(keyDown)) { // prevents duplication of keydown event
@@ -138,17 +139,32 @@ export default class NPC extends Phaser.GameObjects.Sprite {
                 if (!this.scene.dialogueActive) {
                     return;
                 }
+                this.toggleDialogueOptions();
 
-                // toggle answer options
-                this.scene.subtitleBoxYes.selected = !this.scene.subtitleBoxYes.selected;
-                this.scene.subtitleBoxYes.isStroked = !this.scene.subtitleBoxYes.isStroked;
-    
-                this.scene.subtitleBoxNo.selected = !this.scene.subtitleBoxNo.selected;
-                this.scene.subtitleBoxNo.isStroked = !this.scene.subtitleBoxNo.isStroked;
+            }
+        });
+        keyUp.on("down", () => {
+
+            if (Phaser.Input.Keyboard.JustDown(keyUp)) {
+
+                if (!this.scene.dialogueActive) {
+                    return;
+                }
+                this.toggleDialogueOptions();
+
             }
         });
         
 
+    }
+
+    toggleDialogueOptions() {
+        // toggle answer options
+        this.scene.subtitleBoxYes.selected = !this.scene.subtitleBoxYes.selected;
+        this.scene.subtitleBoxYes.isStroked = !this.scene.subtitleBoxYes.isStroked;
+
+        this.scene.subtitleBoxNo.selected = !this.scene.subtitleBoxNo.selected;
+        this.scene.subtitleBoxNo.isStroked = !this.scene.subtitleBoxNo.isStroked;
     }
 
     createDialogueUI() {

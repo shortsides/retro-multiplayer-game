@@ -25,8 +25,14 @@ export default class TitleScene extends Phaser.Scene {
         this.load.image("tiles-world", "../../assets/tilesets/world_atlas.png");
         this.load.tilemapTiledJSON("map-world", "../../assets/tilesets/world_v1.json");
 
+        // load title screens
+        this.load.image("title-snake", "../../assets/titlescreens/snake_titlescreen.png");
+
         // load chat input field
         this.load.html("chat", "../../chat_form.html");
+
+        // load minigames
+        this.load.html("snakeGame", "src/scenes/minigames/snake.html");
 
         // load spritesheets
         this.load.spritesheet(SPRITES[0].spriteSheet, SPRITES[0].spriteSheetPath, 
@@ -39,6 +45,8 @@ export default class TitleScene extends Phaser.Scene {
         { frameWidth: 110, frameHeight: 96 });
         this.load.spritesheet("propeller", "../../assets/sprites/propeller.png", 
         { frameWidth: 32, frameHeight: 32 });
+        this.load.spritesheet("snake-arcade", "../../assets/sprites/arcade_snake.png", 
+        { frameWidth: 40, frameHeight: 60 });
 
         // environment animations
         this.load.spritesheet("fire", "../../assets/sprites/fire.png", { frameWidth: 16, frameHeight: 20 });
