@@ -21,34 +21,41 @@ function Main() {
     const ROOM_MAX_CAPACITY = 8;
 
     let worlds = []; // tracks active world rooms on server
+    let world; // world the current player/client is in
+    let roomName;
 
     io.on("connection", client => {
 
-        // only start world after player logs in
-        client.on('playGame', handlePlayGame); 
-    
-        function handlePlayGame(playerName) {
-    
-            const roomName = getRoom(worlds, 'World', ROOM_MAX_CAPACITY);
+        client.on('login', handleLogin)
+        client.on('playGame', handlePlayGame); // only start world after player logs in
+        
+        function handleLogin(playerName) {
+
+            roomName = getRoom(worlds, 'World', ROOM_MAX_CAPACITY);
     
             const playerNum = getPlayerNum(roomName, ROOM_MAX_CAPACITY);
     
             // optional check for if the number of rooms is finite
             if (playerNum === false) {
+                console.log('server full');
                 client.emit('serverFull', roomName);
                 return;
             }
 
             // create any new rooms required
-            let world;
+            let nameAvailable = true;
             if (worlds.length === 0) {
                 world = new WorldController(io, roomName);
                 worlds.push(world);
                 console.log(`${roomName} was initiated`)
             } else {
-                Object.keys(worlds).forEach(function (i) {
+                Object.keys(worlds).every(function (i) {
                     if (worlds[i].roomName === roomName) {
                         world = worlds[i];
+                        nameAvailable = checkPlayerName(playerName, world);
+                        if (!nameAvailable) {
+                            return false;
+                        }
                     } else {
                         world = new WorldController(io, roomName);
                         worlds.push(world);
@@ -56,9 +63,20 @@ function Main() {
                     }
                 });
             }
-            client.name = playerName;
-            world.playerJoin(client);
+            if (nameAvailable === false) {
+                client.emit('nameTaken');
+                return;
+            }
 
+            client.name = playerName;
+            
+            client.emit('loginSuccess')
+            
+        }
+    
+        function handlePlayGame(playerName) {
+
+            world.playerJoin(client);
 
             // handle minigames
             client.on("joinMiniGame", miniGameName => {
@@ -126,6 +144,15 @@ function Main() {
 
         return 1; // if no room exists then the first playerNum should be 1
 
+    }
+
+    // Checks if player username is not already taken
+    function checkPlayerName(playerName, playerWorld) {
+        for (let p of playerWorld.players) {
+            if (p.name === playerName) {
+                return false;
+            }
+        }
     }
 
     // Shuts down room if no players

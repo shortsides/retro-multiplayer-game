@@ -10,6 +10,8 @@ import MiniGameSnake from "./src/scenes/minigames/snake.js";
 // local testing config
 export const socket = io('http://localhost:3000/');
 
+socket.on('loginSuccess', initGame);
+socket.on('nameTaken', handleNameTaken);
 socket.on('serverFull', handleServerFull);
 
 const initialScreen = document.getElementById('initialScreen');
@@ -18,7 +20,7 @@ const gameScreen = document.getElementById('game-container');
 const nameInput = document.getElementById('nameInput');
 const playButton = document.getElementById('playButton');
 
-playButton.addEventListener('click', initGame);
+playButton.addEventListener('click', login);
 
 export let playerName;
 export let playerSprite;
@@ -153,13 +155,28 @@ let sceneWorld = new SceneWorld();
 // create minigames
 let miniGameSnake = new MiniGameSnake();
 
-function initGame() {
+function login() {
 
     playerName = nameInput.value;
     if (playerName.length < 1) {
         initialScreenMessage.innerText = 'Please enter your name';
         return;
     }
+    socket.emit('login', playerName);
+
+}
+
+function handleServerFull(serverName) {
+    initialScreenMessage.innerText = `${serverName} is full`;
+}
+
+function handleNameTaken() {
+    initialScreenMessage.innerText = `The name ${playerName} is taken`;
+}
+
+function initGame() {
+
+
 
     playerSprite = getUserSprite(playerName);
 
@@ -176,10 +193,6 @@ function initGame() {
 
     initialScreen.style.display = 'none';
 
-}
-
-function handleServerFull(serverName) {
-    initialScreenMessage.innerText = `${serverName} is full`;
 }
 
 // select a sprite for player based on hash of their username
