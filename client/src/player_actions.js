@@ -56,17 +56,27 @@ export default class PlayerActions extends Phaser.Scene {
             else if (prevVelocity.y < 0) self.player.setTexture(playerSprite.spriteSheet, playerSprite.back);
             else if (prevVelocity.y > 0) self.player.setTexture(playerSprite.spriteSheet, playerSprite.front);
         }
+
+        // If player is colliding with an object or world boundary, don't send movement updates
+        if (self.playerContainer.isColliding) {
+            return;
+        }
         
-        // Send movement updates to server
+        // Send movement updates to server every frame
         const movementData = {
             velocity: self.playerContainer.body.velocity,
             position: self.playerContainer.body.position
         }
+        socket.emit('playerMovement', movementData);
+        /*
         if (prevVelocity.x !== self.playerContainer.body.velocity.x || prevVelocity.y !== self.playerContainer.body.velocity.y) {
             socket.emit('playerMovement', movementData);
-        } else if (prevVelocity.x !== self.playerContainer.body.position.x || prevVelocity.y !== self.playerContainer.body.position.y) {
+            console.log('movement 1')
+        } else if (prevPosition.x !== self.playerContainer.body.position.x || prevPosition.y !== self.playerContainer.body.position.y) {
             socket.emit('playerMovement', movementData);
+            console.log('movement 2')
         }
+        */
     }
 
 

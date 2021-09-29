@@ -103,10 +103,6 @@ export default class SceneMainBuildingBasement extends Phaser.Scene {
             self.playerManager.moveOtherPlayers(self, playerInfo, scene)
         })
 
-        socket.on('updatePlayerPositions', function(playerInfo) {
-            self.playerManager.updateOtherPlayerPositions(self, playerInfo, scene)
-        })
-
         // remove players who leave the scene
         socket.on('playerChangedScene', function (player) {
             self.playerManager.changeScene(self, player, scene);
@@ -142,6 +138,7 @@ export default class SceneMainBuildingBasement extends Phaser.Scene {
 
         const playerActions = new PlayerActions(this);
         playerActions.movePlayer(this);
+        this.playerContainer.isColliding = false;
         
         // check if player has left basement
         if (405 > this.playerContainer.body.position.x < 415 && this.playerContainer.body.position.y < 360) {
@@ -173,7 +170,9 @@ export default class SceneMainBuildingBasement extends Phaser.Scene {
         let self = this;
 
         // create player collision & interaction with snake game
-        this.physics.add.collider(this.playerContainer, this.snakeSprite);
+        this.physics.add.collider(this.playerContainer, this.snakeSprite, function() {
+            self.playerContainer.isColliding = true;
+        });
 
         this.physics.add.overlap(this.snakeBox, this.playerContainer, function() {
 

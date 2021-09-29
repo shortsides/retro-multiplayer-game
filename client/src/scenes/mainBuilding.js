@@ -108,10 +108,6 @@ export default class SceneMainBuilding extends Phaser.Scene {
             self.playerManager.moveOtherPlayers(self, playerInfo, scene)
         })
 
-        socket.on('updatePlayerPositions', function(playerInfo) {
-            self.playerManager.updateOtherPlayerPositions(self, playerInfo, scene)
-        })
-
         // remove players who leave the scene
         socket.on('playerChangedScene', function (player) {
             self.playerManager.changeScene(self, player, scene);
@@ -150,7 +146,8 @@ export default class SceneMainBuilding extends Phaser.Scene {
 
         const playerActions = new PlayerActions(this);
         playerActions.movePlayer(this);
-        
+        this.playerContainer.isColliding = false;
+
         // check if player has left main building
         if (this.playerContainer.body.position.y > 640) {
 

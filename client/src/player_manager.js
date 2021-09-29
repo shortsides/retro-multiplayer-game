@@ -33,7 +33,9 @@ export default class PlayerManager extends Phaser.Scene {
 
         // enable physics for player container
         self.physics.world.enable(self.playerContainer);
-        self.physics.add.collider(self.playerContainer, worldLayer);
+        self.physics.add.collider(self.playerContainer, worldLayer, function() {
+            self.playerContainer.isColliding = true;
+        });
 
         const camera = self.cameras.main;
         camera.startFollow(self.playerContainer);
@@ -103,6 +105,10 @@ export default class PlayerManager extends Phaser.Scene {
                 // Update velocity as per server data
                 otherPlayer.body.setVelocityX(playerInfo.velocity.x);
                 otherPlayer.body.setVelocityY(playerInfo.velocity.y);
+
+                // Update position as per server data
+                otherPlayer.setPosition(playerInfo.position.x + 11, playerInfo.position.y + 15)
+                //self.interpolatePositions(playerInfo.position, otherPlayer)
             
                 // Handle walking animations
                 if (otherPlayer.body.velocity.x < 0) {
@@ -123,25 +129,10 @@ export default class PlayerManager extends Phaser.Scene {
                     else if (prevVelocity.y > 0) otherPlayer.first.setTexture(self.otherPlayerSprite.spriteSheet, self.otherPlayerSprite.front);
                     
                 }
-            }
-
-        })
-    }
-
-    updateOtherPlayerPositions(game, playerInfo, scene) {
-        if (playerInfo.scene !== scene) {
-            return;
-        }
-        let self = this;
-        game.otherPlayers.getChildren().forEach(function (otherPlayer) {
-            if (playerInfo.playerId === otherPlayer.first.playerId) {
                 
-                //self.interpolatePositions(playerInfo.position, otherPlayer)
-
-                otherPlayer.setPosition(playerInfo.position.x + 11, playerInfo.position.y + 15);
             }
-        })
 
+        })
     }
 
     // TBC

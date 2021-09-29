@@ -10,7 +10,7 @@ export default class PlayerController {
         
         this.setupSockets();
 
-        this.setUpdateRate(6);
+        this.setUpdateRate(60);
     }
 
 
@@ -42,7 +42,7 @@ export default class PlayerController {
 
     sendPlayerState() {
         // Broadcast the player state to all the clients.
-        this.world.io.sockets.in(this.world.roomName).emit('updatePlayerPositions', this.state);
+        this.world.io.sockets.in(this.world.roomName).emit('playerMoved', this.state);
     }
 
 
@@ -51,7 +51,7 @@ export default class PlayerController {
         this.state.velocity = movementData.velocity;
         this.state.position = movementData.position;
         // emit new player state to all players
-        this.world.io.sockets.in(this.world.roomName).emit('playerMoved', this.state);
+        //this.world.io.sockets.in(this.world.roomName).emit('playerMoved', this.state);
     }
 
 
