@@ -6,18 +6,36 @@ export default class PlayerController {
         this.client_io = client;
         this.world = world;
 
+        this.messages = [];
+
         this.state = this.initPlayerState();
         
         this.setupSockets();
 
-        this.setUpdateRate(60);
+        this.setUpdateRate(0.25);
     }
 
 
     setupSockets() {
 
         this.client_io.on("playerMovement", movementData => {
+
+            // SIMULATE SERVER LAG
+            //------------------------------------------------------------------------
+            /*
+            let self = this;
+            let timeout = Math.random() * 300;
+            setTimeout(function(){ 
+                self.movePlayer(movementData); 
+
+                //self.messages.push[movementData]
+
+            }, timeout);
+            */
+            //------------------------------------------------------------------------
+
             this.movePlayer(movementData);
+            
         });
 
         this.client_io.on("sceneChange", scenes => {
@@ -42,7 +60,7 @@ export default class PlayerController {
 
     sendPlayerState() {
         // Broadcast the player state to all the clients.
-        this.world.io.sockets.in(this.world.roomName).emit('playerMoved', this.state);
+        this.world.io.sockets.in(this.world.roomName).emit('playerMoved', this.state, 'ticker');
     }
 
 
@@ -51,7 +69,18 @@ export default class PlayerController {
         this.state.velocity = movementData.velocity;
         this.state.position = movementData.position;
         // emit new player state to all players
-        //this.world.io.sockets.in(this.world.roomName).emit('playerMoved', this.state);
+        this.world.io.sockets.in(this.world.roomName).emit('playerMoved', this.state);
+    }
+
+    receive() {
+        var now = +new Date();
+        for (var i = 0; i < this.messages.length; i++) {
+          var message = this.messages[i];
+          if (message.recv_ts <= now) {
+            this.messages.splice(i, 1);
+            return message.payload;
+          }
+        }
     }
 
 

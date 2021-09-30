@@ -88,7 +88,7 @@ export default class PlayerManager extends Phaser.Scene {
 
     }
 
-    moveOtherPlayers(self, playerInfo, scene) {
+    moveOtherPlayers(self, playerInfo, ticker, scene) {
 
         if (playerInfo.scene !== scene) {
             return;
@@ -106,9 +106,6 @@ export default class PlayerManager extends Phaser.Scene {
                 otherPlayer.body.setVelocityX(playerInfo.velocity.x);
                 otherPlayer.body.setVelocityY(playerInfo.velocity.y);
 
-                // Update position as per server data
-                otherPlayer.setPosition(playerInfo.position.x + 11, playerInfo.position.y + 15)
-                //self.interpolatePositions(playerInfo.position, otherPlayer)
             
                 // Handle walking animations
                 if (otherPlayer.body.velocity.x < 0) {
@@ -128,6 +125,12 @@ export default class PlayerManager extends Phaser.Scene {
                     else if (prevVelocity.y < 0) otherPlayer.first.setTexture(self.otherPlayerSprite.spriteSheet, self.otherPlayerSprite.back);
                     else if (prevVelocity.y > 0) otherPlayer.first.setTexture(self.otherPlayerSprite.spriteSheet, self.otherPlayerSprite.front);
                     
+                }
+
+                if (ticker === 'ticker') {
+                    // Update position as per server data
+                    otherPlayer.setPosition(playerInfo.position.x + 11, playerInfo.position.y + 15)
+                    //self.interpolatePositions(playerInfo.position, otherPlayer)
                 }
                 
             }
