@@ -103,8 +103,8 @@ export default class SceneWorld extends Phaser.Scene {
         })
     
         // Handle other player movements
-        socket.on('playerMoved', function(playerInfo) {
-            self.playerManager.moveOtherPlayers(self, playerInfo, scene)
+        socket.on('playerMoved', function(playerInfo, ticker) {
+            self.playerManager.moveOtherPlayers(self, playerInfo, ticker, scene)
         })
         
         // remove players who leave the scene
