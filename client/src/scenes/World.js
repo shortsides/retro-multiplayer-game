@@ -144,6 +144,7 @@ export default class SceneWorld extends Phaser.Scene {
 
         const playerActions = new PlayerActions(this);
         playerActions.movePlayer(this);
+        this.playerContainer.isColliding = false;
 
 
         // check if player has gone into main building
