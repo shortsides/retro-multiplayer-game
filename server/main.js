@@ -26,6 +26,10 @@ function Main() {
 
     io.on("connection", client => {
 
+        console.log(`client ${client.id} connected`);
+
+        /*
+
         client.on('login', handleLogin)
         client.on('playGame', handlePlayGame); // only start world after player logs in
         
@@ -101,6 +105,7 @@ function Main() {
             })
         
         }
+        */
     
     });
 
