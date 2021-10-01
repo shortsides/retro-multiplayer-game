@@ -7,6 +7,19 @@ export default class InventoryManager extends Phaser.Scene {
             this.scene = scene;
 
             this.items = [];
+
+            this.inventoryButton(scene);
+        }
+
+        inventoryButton(scene) {
+            document.getElementById('inventory_button').onclick = function() {
+                scene.inventoryUI = document.getElementById('inventory_container');
+                if (scene.inventoryUI.style.display === 'block') {
+                    scene.inventoryUI.style.display = 'none';
+                } else {
+                    scene.inventoryUI.style.display = 'block';
+                }
+            }
         }
 
 

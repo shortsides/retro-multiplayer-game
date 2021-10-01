@@ -13,7 +13,7 @@ export default class Cursors extends Phaser.Scene {
             down: self.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN),
             enter: self.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER),
             shift: self.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT),
-            i: self.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.I)
+            //i: self.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.I)
         }
 
         // If "Enter" is pressed, send message
@@ -44,6 +44,7 @@ export default class Cursors extends Phaser.Scene {
         })
 
         // Toggle inventory UI using 'i' key
+        /*
         self.cursors.i.on("down", () => {
             self.inventoryUI = document.getElementById('inventory_container');
             if (self.inventoryUI.style.display === 'block') {
@@ -52,6 +53,7 @@ export default class Cursors extends Phaser.Scene {
                 self.inventoryUI.style.display = 'block';
             }
         })
+        */
     }
 
     debugGraphics (self, worldLayer) {
