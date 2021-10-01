@@ -70,7 +70,7 @@ export default class SceneMainBuilding extends Phaser.Scene {
         this.registry.set('chatMessages', chat.chatMessages);
 
         // Create inventory UI
-        this.inventoryUI = this.add.dom(550, 180).createFromCache("inventory")
+        this.inventoryUI = this.add.dom(616, 16).createFromCache("inventory")
             .setScrollFactor(0)
             .setDepth(30)
         
@@ -201,8 +201,9 @@ export default class SceneMainBuilding extends Phaser.Scene {
 
         let self = this;
 
-        // display chat
+        // display chat and buttons
         document.getElementById('chatBox').style.display = 'block';
+        document.getElementById('inventory_button').style.display = 'block';
         
         // listen for player collisions with inkeeper container
         self.physics.add.overlap(self.innKeeperContainer, self.playerContainer, function() {

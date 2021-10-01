@@ -66,7 +66,7 @@ export default class SceneWorld extends Phaser.Scene {
         this.registry.set('chatMessages', chat.chatMessages);
 
         // Create inventory UI
-        this.inventory = this.add.dom(550, 180).createFromCache("inventory")
+        this.inventoryUI = this.add.dom(616, 16).createFromCache("inventory")
             .setScrollFactor(0)
             .setDepth(30)
         
@@ -153,7 +153,7 @@ export default class SceneWorld extends Phaser.Scene {
 
 
         // check if player has gone into main building
-        if (this.playerContainer.body.position.x > 1155 && this.playerContainer.body.position.y < 590) {
+        if (this.playerContainer.body.position.x > 1150 && this.playerContainer.body.position.y < 590) {
 
             // pause player position
             this.playerContainer.body.moves = false;
@@ -181,8 +181,9 @@ export default class SceneWorld extends Phaser.Scene {
 
         let self = this;
 
-        // display chat
+        // display chat and buttons
         document.getElementById('chatBox').style.display = 'block';
+        document.getElementById('inventory_button').style.display = 'block';
 
         // create player collisions with propeller container
         this.physics.add.overlap(this.propellerContainer, this.playerContainer, function() {
