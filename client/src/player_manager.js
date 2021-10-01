@@ -44,15 +44,15 @@ export default class PlayerManager extends Phaser.Scene {
         camera.visible = true;
         camera.fadeIn(500);
 
-        this.createPlayerInventory(self, playerInfo.inventory);
+        this.createPlayerInventory(self, playerInfo.inventory, playerInfo.coins);
 
         console.log(`spawned ${playerInfo.name} in ${playerInfo.scene}`)
 
     }
 
-    createPlayerInventory(self, inventory) {
+    createPlayerInventory(self, inventory, coins) {
         self.inventory = new InventoryManager(self);
-        self.inventory.loadItems(inventory);
+        self.inventory.loadItems(inventory, coins);
     }
 
     addOtherPlayers(self, playerInfo, worldLayer, scene) {

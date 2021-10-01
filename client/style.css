@@ -157,6 +157,7 @@ html, body {
   width: 100%;
   font-size: 25px;
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   height: 100%;
@@ -168,7 +169,7 @@ html, body {
   display: flex;
   justify-content: center;
   align-items: center;
-  top: 330px;
+  top: 340px;
 }
 
 #exitButton2 {

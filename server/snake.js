@@ -52,7 +52,7 @@ export default class SnakeGame {
                     self.emitGameState();
                 } else {
                     self.gameActive = false;
-                    self.emitGameOver(winner);
+                    self.emitGameOver(winner, self.state.players);
                     self.state = null;
                     clearInterval(intervalId);
                 }
@@ -63,9 +63,9 @@ export default class SnakeGame {
             this.io.sockets.in(this.gameId).emit('gameState', this.state);
         }
         
-        emitGameOver(winner) {
+        emitGameOver(winner, players) {
             this.gameOver = true;
-            this.io.sockets.in(this.gameId).emit('gameOver', { winner });
+            this.io.sockets.in(this.gameId).emit('gameOver', winner, players);
         }
 
         createGameState (numberOfPlayers) {

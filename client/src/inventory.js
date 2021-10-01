@@ -7,6 +7,7 @@ export default class InventoryManager extends Phaser.Scene {
             this.scene = scene;
 
             this.items = [];
+            this.coins;
 
             this.inventoryButton(scene);
         }
@@ -22,9 +23,8 @@ export default class InventoryManager extends Phaser.Scene {
             }
         }
 
-
-        // Set player inventory to inventory from server and (re)load UI
-        loadItems(playerInventory) {
+        // Set player inventory to details from server and (re)load UI
+        loadItems(playerInventory, coins) {
             this.items = playerInventory;
 
             // display all items
@@ -34,6 +34,10 @@ export default class InventoryManager extends Phaser.Scene {
                 }
                 this.displayItem(i);
             }
+
+            // set coin value
+            this.coins = coins;
+            this.displayCoins();
         }
 
         displayItem(i) {
@@ -99,10 +103,22 @@ export default class InventoryManager extends Phaser.Scene {
             this.sendInventory();
 
         }
+
+        displayCoins() {
+            let coinBag = document.getElementById('coin_bag');
+            coinBag.innerText = `${this.coins} coins`;
+        }
+
+        // update coin value both locally and on server
+        updateCoins(newCoinCount) {
+            this.coins = newCoinCount;
+            this.displayCoins();
+            this.sendInventory();
+        }
       
         // send current inventory state to server
         sendInventory() {
-            socket.emit('inventory', this.items);
+            socket.emit('inventory', this.items, this.coins);
         }
 
 

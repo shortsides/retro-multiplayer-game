@@ -143,22 +143,22 @@ export default class MiniGameSnake extends Phaser.Scene {
                 gameHeader.innerText = `${SNAKE_COLOURS[1]} PLAYER`;
                 //gameHeader.style.color = SNAKE_COLOURS[1];
                 livesCount.innerText = `${HEART.repeat(state.players[1].lives)}`;
-                pointsCount.innerText = state.players[0].points;
+                pointsCount.innerText = state.players[1].points;
             } else if (playerNumber === 3) {
                 gameHeader.innerText = `${SNAKE_COLOURS[2]} PLAYER`;
                 //gameHeader.style.color = SNAKE_COLOURS[2];
                 livesCount.innerText = `${HEART.repeat(state.players[2].lives)}`;
-                pointsCount.innerText = state.players[0].points;
+                pointsCount.innerText = state.players[2].points;
             } else if (playerNumber === 4) {
                 gameHeader.innerText = `${SNAKE_COLOURS[3]} PLAYER`;
                 //gameHeader.style.color = SNAKE_COLOURS[3];
                 livesCount.innerText = `${HEART.repeat(state.players[3].lives)}`;
-                pointsCount.innerText = state.players[0].points;
+                pointsCount.innerText = state.players[3].points;
             } else if (playerNumber === 5) {
                 gameHeader.innerText = `${SNAKE_COLOURS[4]} PLAYER`;
                 //gameHeader.style.color = SNAKE_COLOURS[4];
                 livesCount.innerText = `${HEART.repeat(state.players[4].lives)}`;
-                pointsCount.innerText = state.players[0].points;
+                pointsCount.innerText = state.players[4].points;
             }
         
         }
@@ -192,19 +192,37 @@ export default class MiniGameSnake extends Phaser.Scene {
             requestAnimationFrame(() => paintGame(gameState));
         }
         
-        function handleGameOver(data) {
+        function handleGameOver(winner, players) {
             if (!gameActive) {
                 return;
             }
             
             exitButton2.style.display = 'block';
             gameConsole.innerText = 'GAME OVER';
-        
-            if (data.winner === playerNumber) {
-                gameConsole.innerText = 'YOU WIN!';
-            } else {
-                gameConsole.innerText = `${SNAKE_COLOURS[data.winner - 1]} PLAYER WINS`;
+
+            let coinReward = document.createElement('p');
+            coinReward.style.textAlign = 'center';
+            coinReward.style.fontSize = '18px';
+
+            let score = 0;
+            for (let p of players) {
+                if (p.name === playerNumber) {
+                    score = p.points;
+                }
             }
+        
+            if (winner === playerNumber) {
+                gameConsole.innerText = 'YOU WIN!';
+                score = score + 10;
+                coinReward.innerText = `+${score} coins`;
+                gameConsole.appendChild(coinReward);
+            } else {
+                gameConsole.innerText = `${SNAKE_COLOURS[winner - 1]} PLAYER WINS`;
+                coinReward.innerText = `+${score} coins`;
+                gameConsole.appendChild(coinReward);
+            }
+
+            socket.emit("updateCoins", score);
 
             resetGame();
 
