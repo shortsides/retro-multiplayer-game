@@ -45,6 +45,10 @@ export default class PlayerController {
         this.client_io.on("message", message => {
             this.handleChatMessage(message);
         })
+
+        this.client_io.on("inventory", items => {
+            this.updateInventory(items);
+        })
     }
 
     setUpdateRate(hz) {
@@ -136,6 +140,24 @@ export default class PlayerController {
     }
 
 
+    // when a player's inventory state changes, update inventory
+    updateInventory(items) {
+        this.state.inventory = items;
+    }
+
+    // create player's empty inventory slots
+    createInventorySlots(inventorySize) {
+        let inventory = [];
+        for (let i = 0; i < inventorySize; i++) {
+            let item = {};
+            item.slot = i + 1;
+            item.available = true;
+            inventory.push(item)
+        }
+        return inventory;
+      }
+
+
     // set initial state for player - spawn player in main building
     initPlayerState() {
         return {
@@ -149,6 +171,7 @@ export default class PlayerController {
                 x: 480,
                 y: 625
             },
+            inventory: this.createInventorySlots(20)
         }
     }
 

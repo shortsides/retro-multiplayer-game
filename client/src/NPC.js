@@ -105,8 +105,16 @@ export default class NPC extends Phaser.GameObjects.Sprite {
             this.scene.subtitleBoxNo.setAlpha(0);
             this.scene.subtitleNo.setAlpha(0);
 
+            // link to the next piece of dialogue depending on option chosen
             if (this.scene.subtitleBoxYes.selected) {
+
+                // if a function is defined, perform function when player selects first answer
+                if (typeof this.scene.blurb.answers[0].function !== "undefined") {
+                    this.convoAction(this.scene.blurb.answers[0].function);
+                }
+
                 this.readDialogue(this.scene.blurb.answers[0].linkTo)
+
             } else {
                 this.readDialogue(this.scene.blurb.answers[1].linkTo)
             }
@@ -259,6 +267,19 @@ export default class NPC extends Phaser.GameObjects.Sprite {
         setTimeout(function () {
             self.scene.dialogueActive = false;
         }, 200);
+    }
+
+    convoAction(action) {
+        if (action.type === "pickUp") {
+            this.pickUpItem(action.props);
+        }
+    }
+
+    pickUpItem(item) {
+        console.log(`picked up ${item.name}`);
+        
+        // Add item to inventory
+        this.scene.inventory.addItem(item);
     }
 
 }

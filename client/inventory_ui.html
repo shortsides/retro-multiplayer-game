@@ -1,0 +1,107 @@
+<style>
+    
+    #inventory_container {
+        display: none;
+        background-color: #D39B72;
+        border: 3px solid #6D4529;
+        border-radius: 2px;
+        width: 100%;
+    }
+
+    table {
+      font-family: monospace;
+      border-collapse: collapse;
+      width: 100%;
+      background-color: #BE865C;
+    }
+    
+    td {
+      border: 3px solid #BE865C;
+      position: relative;
+      text-align: center;
+      background-color: #F6C99C;
+      border-radius: 10px;
+      width: 40px;
+      height: 40px;
+    }
+
+    #coin_bag {
+        text-align: center;
+        color: yellow;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+
+    td .tooltiptext {
+        visibility: hidden;
+        width: 120px;
+        background-color: #21313c;
+        color: #fff;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 12px;
+        text-align: center;
+        border-radius: 6px;
+        padding: 5px 0;
+        position: absolute;
+        z-index: 1;
+        bottom: 120%;
+        left: 50%;
+        margin-left: -60px;
+    }
+
+    td .tooltiptext::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        margin-left: -5px;
+        border-width: 5px;
+        border-style: solid;
+        border-color: #21313CDD transparent transparent transparent;
+    }
+
+    td:hover .tooltiptext {
+        visibility: visible;
+    }
+
+</style>
+
+<div id="inventory_container">
+
+    <table id="inventory">
+        <tr>
+            <td id="slot1"></td>
+            <td id="slot2"></td>
+            <td id="slot3"></td>
+            <td id="slot4"></td>
+        </tr>
+        <tr>
+            <td id="slot5"></td>
+            <td id="slot6"></td>
+            <td id="slot7"></td>
+            <td id="slot8"></td>
+        </tr>
+        <tr>
+            <td id="slot9"></td>
+            <td id="slot10"></td>
+            <td id="slot11"></td>
+            <td id="slot12"></td>
+        </tr>
+        <tr>
+            <td id="slot13"></td>
+            <td id="slot14"></td>
+            <td id="slot15"></td>
+            <td id="slot16"></td>
+        </tr>
+        <tr>
+            <td id="slot17"></td>
+            <td id="slot18"></td>
+            <td id="slot19"></td>
+            <td id="slot20"></td>
+        </tr>
+    </table>
+
+    <div id="coin_bag">10 coins</div>
+
+</div>

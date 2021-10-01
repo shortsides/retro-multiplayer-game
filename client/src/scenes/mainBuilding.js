@@ -8,6 +8,7 @@ import Cursors from "../cursors.js";
 import PlayerActions from "../player_actions.js";
 import ChatManager from "../chat_manager.js";
 import NPC from "../NPC.js";
+import InventoryManager from "../Inventory.js";
 import { innkeeperConfig } from "../NPC_char.js";
 
 export default class SceneMainBuilding extends Phaser.Scene {
@@ -67,6 +68,11 @@ export default class SceneMainBuilding extends Phaser.Scene {
         let messages = this.registry.get('chatMessages')
         chat.reloadMessages(this, messages);
         this.registry.set('chatMessages', chat.chatMessages);
+
+        // Create inventory UI
+        this.inventoryUI = this.add.dom(550, 180).createFromCache("inventory")
+            .setScrollFactor(0)
+            .setDepth(30)
         
         // Create player manager in scene
         this.playerManager = new PlayerManager(this);
@@ -80,7 +86,6 @@ export default class SceneMainBuilding extends Phaser.Scene {
             Object.keys(players).forEach(function (id) {
                 if (players[id].playerId === socket.id) {
                     self.playerManager.addPlayer(self, players[id], worldLayer, map);
-                    document.getElementById('chatBox').style.display = 'block';
 
                     self.afterPlayerSpawn();
 
@@ -195,6 +200,9 @@ export default class SceneMainBuilding extends Phaser.Scene {
         this.gameActive = true;
 
         let self = this;
+
+        // display chat
+        document.getElementById('chatBox').style.display = 'block';
         
         // listen for player collisions with inkeeper container
         self.physics.add.overlap(self.innKeeperContainer, self.playerContainer, function() {

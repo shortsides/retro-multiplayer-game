@@ -12,7 +12,8 @@ export default class Cursors extends Phaser.Scene {
             up: self.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP),
             down: self.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN),
             enter: self.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER),
-            shift: self.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT)
+            shift: self.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT),
+            i: self.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.I)
         }
 
         // If "Enter" is pressed, send message
@@ -39,6 +40,16 @@ export default class Cursors extends Phaser.Scene {
                 self.chatArea.style.display = 'block';
                 self.chatArea.scrollTop = self.chatArea.scrollHeight;
                 self.chatBox.style.opacity = 0.8;
+            }
+        })
+
+        // Toggle inventory UI using 'i' key
+        self.cursors.i.on("down", () => {
+            self.inventoryUI = document.getElementById('inventory_container');
+            if (self.inventoryUI.style.display === 'block') {
+                self.inventoryUI.style.display = 'none';
+            } else {
+                self.inventoryUI.style.display = 'block';
             }
         })
     }

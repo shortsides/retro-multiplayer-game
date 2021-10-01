@@ -31,6 +31,9 @@ export default class TitleScene extends Phaser.Scene {
         // load chat input field
         this.load.html("chat", "../../chat_form.html");
 
+        // load inventory
+        this.load.html("inventory", "../../inventory_ui.html");
+
         // load minigames
         this.load.html("snakeGame", "src/scenes/minigames/snake.html");
 

@@ -1,4 +1,3 @@
-import { SPRITES } from "../../index.js";
 
 export const innkeeperConfig = {
             x: 590,
@@ -72,6 +71,14 @@ export const propellerConfig = {
             answers: [
                 {
                 reply: "Yes",
+                function: {
+                    type: "pickUp",
+                    props: {
+                        name: 'propeller',
+                        spritePath: './assets/sprites/propeller.png',
+                        info: 'Airplane propeller',
+                    }
+                },
                 linkTo: "actionYes"
                 },
                 {

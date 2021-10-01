@@ -6,6 +6,7 @@ import Cursors from "../cursors.js";
 import PlayerActions from "../player_actions.js";
 import ChatManager from "../chat_manager.js";
 import NPC from "../NPC.js";
+import InventoryManager from "../Inventory.js";
 import { propellerConfig } from "../NPC_char.js";
 
 export default class SceneWorld extends Phaser.Scene {
@@ -50,7 +51,7 @@ export default class SceneWorld extends Phaser.Scene {
         const cursors = new Cursors(this);
 
         // Debug graphics
-        cursors.debugGraphics(this, worldLayer);
+        //cursors.debugGraphics(this, worldLayer);
 
         // Create chat window
         this.chat = this.add.dom(16, 16).createFromCache("chat")
@@ -63,6 +64,11 @@ export default class SceneWorld extends Phaser.Scene {
         let messages = this.registry.get('chatMessages')
         chat.reloadMessages(this, messages);
         this.registry.set('chatMessages', chat.chatMessages);
+
+        // Create inventory UI
+        this.inventory = this.add.dom(550, 180).createFromCache("inventory")
+            .setScrollFactor(0)
+            .setDepth(30)
         
         // Create player manager in scene
         this.playerManager = new PlayerManager(this);
@@ -76,7 +82,6 @@ export default class SceneWorld extends Phaser.Scene {
             Object.keys(players).forEach(function (id) {
                 if (players[id].playerId === socket.id) {
                     self.playerManager.addPlayer(self, players[id], worldLayer, map);
-                    document.getElementById('chatBox').style.display = 'block';
 
                     self.afterPlayerSpawn();
 
@@ -175,6 +180,9 @@ export default class SceneWorld extends Phaser.Scene {
         this.gameActive = true;
 
         let self = this;
+
+        // display chat
+        document.getElementById('chatBox').style.display = 'block';
 
         // create player collisions with propeller container
         this.physics.add.overlap(this.propellerContainer, this.playerContainer, function() {
