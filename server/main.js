@@ -12,7 +12,7 @@ function Main() {
     // production server config
     const io = new socket_io.Server(server, {
         cors: {
-            origin: "https://confident-wing-1924d2.netlify.app/",
+            origin: "https://confident-wing-1924d2.netlify.app",
             credentials: true
         }
     });
