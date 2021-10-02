@@ -8,12 +8,22 @@ function Main() {
     const port = process.env.PORT || 3000;
   
     const server = http.createServer();
+    
+    // production server config
     const io = new socket_io.Server(server, {
         cors: {
-            origin: true
+            origin: "https://confident-wing-1924d2.netlify.app/",
+            credentials: true
         }
     });
-  
+    /*
+    // local testing config
+    const io = new socket_io.Server(server, {
+        cors: {
+            origin: "*"
+        }
+    });
+    */
     server.listen(port, () => {
       console.log('listening on: *', port);
     });
