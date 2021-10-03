@@ -1,4 +1,4 @@
-import { socket } from "../index.js";
+import { devMode, socket } from "../index.js";
 import { getUserSprite } from "../index.js";
 import { playerSprite } from "../index.js";
 import InventoryManager from "./Inventory.js";
@@ -44,7 +44,13 @@ export default class PlayerManager extends Phaser.Scene {
         camera.visible = true;
         camera.fadeIn(500);
 
+        // create inventory object
         this.createPlayerInventory(self, playerInfo.inventory, playerInfo.coins);
+
+        // debug coordinates
+        if (devMode) {
+            this.debugCoordinates(self);
+        }
 
         console.log(`spawned ${playerInfo.name} in ${playerInfo.scene}`)
 
@@ -62,7 +68,7 @@ export default class PlayerManager extends Phaser.Scene {
         }
     
         // select a sprite for player based on hash of their username
-        self.otherPlayerSprite = getUserSprite(playerInfo.name);
+        let otherPlayerSprite = getUserSprite(playerInfo.name);
 
         // create other player container for sprite and floating name
         const otherPlayerContainer = self.add.container(playerInfo.position.x, playerInfo.position.y)
@@ -70,7 +76,7 @@ export default class PlayerManager extends Phaser.Scene {
 
         // add other player sprite
         const otherPlayer = self.physics.add
-        .sprite(0, -4, self.otherPlayerSprite.spriteSheet, self.otherPlayerSprite.front)
+        .sprite(0, -4, otherPlayerSprite.spriteSheet, otherPlayerSprite.front)
         .setScale(2)
 
         otherPlayer.playerId = playerInfo.playerId;
@@ -86,6 +92,7 @@ export default class PlayerManager extends Phaser.Scene {
         // add other player sprite and name to player container
         otherPlayerContainer.add(otherPlayer);
         otherPlayerContainer.add(otherPlayerName);
+        otherPlayerContainer.sprite = otherPlayerSprite;
         self.physics.world.enable(otherPlayerContainer);
     
         // Watch the other player and worldLayer for collisions
@@ -117,22 +124,21 @@ export default class PlayerManager extends Phaser.Scene {
             
                 // Handle walking animations
                 if (otherPlayer.body.velocity.x < 0) {
-                    otherPlayer.first.anims.play(`${self.otherPlayerSprite.spriteNum}-left-walk`, true);
+                    otherPlayer.first.anims.play(`${otherPlayer.sprite.spriteNum}-left-walk`, true);
                 } else if (otherPlayer.body.velocity.x > 0) {
-                    otherPlayer.first.anims.play(`${self.otherPlayerSprite.spriteNum}-right-walk`, true);
+                    otherPlayer.first.anims.play(`${otherPlayer.sprite.spriteNum}-right-walk`, true);
                 } else if (otherPlayer.body.velocity.y < 0) {
-                    otherPlayer.first.anims.play(`${self.otherPlayerSprite.spriteNum}-back-walk`, true);
+                    otherPlayer.first.anims.play(`${otherPlayer.sprite.spriteNum}-back-walk`, true);
                 } else if (otherPlayer.body.velocity.y > 0) {
-                    otherPlayer.first.anims.play(`${self.otherPlayerSprite.spriteNum}-front-walk`, true);
+                    otherPlayer.first.anims.play(`${otherPlayer.sprite.spriteNum}-front-walk`, true);
                 } else {
                     otherPlayer.first.anims.stop();
 
                     // If we were moving, pick and idle frame to use
-                    if (prevVelocity.x < 0) otherPlayer.first.setTexture(self.otherPlayerSprite.spriteSheet, self.otherPlayerSprite.left);
-                    else if (prevVelocity.x > 0) otherPlayer.first.setTexture(self.otherPlayerSprite.spriteSheet, self.otherPlayerSprite.right);
-                    else if (prevVelocity.y < 0) otherPlayer.first.setTexture(self.otherPlayerSprite.spriteSheet, self.otherPlayerSprite.back);
-                    else if (prevVelocity.y > 0) otherPlayer.first.setTexture(self.otherPlayerSprite.spriteSheet, self.otherPlayerSprite.front);
-                    
+                    if (prevVelocity.x < 0) otherPlayer.first.setTexture(otherPlayer.sprite.spriteSheet, otherPlayer.sprite.left);
+                    else if (prevVelocity.x > 0) otherPlayer.first.setTexture(otherPlayer.sprite.spriteSheet, otherPlayer.sprite.right);
+                    else if (prevVelocity.y < 0) otherPlayer.first.setTexture(otherPlayer.sprite.spriteSheet, otherPlayer.sprite.back);
+                    else if (prevVelocity.y > 0) otherPlayer.first.setTexture(otherPlayer.sprite.spriteSheet, otherPlayer.sprite.front);
                 }
 
                 if (ticker === 'ticker') {
@@ -194,6 +200,16 @@ export default class PlayerManager extends Phaser.Scene {
                 otherPlayer.destroy();
             }
         })
+    }
+
+    debugCoordinates(self) {
+
+        self.debugPos = self.add.text(400, 16, ``, {
+            font: "14px monospace",
+            fill: "#ffffff",
+        })
+        .setScrollFactor(0)
+        .setColor("#ffffff");
     }
 
 

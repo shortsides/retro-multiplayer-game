@@ -14,6 +14,9 @@ export const socket = io("https://agile-meadow-49870.herokuapp.com/", {
 // local testing config
 //export const socket = io('http://localhost:3000/');
 
+// global developer mode toggle for debugging tools
+export const devMode = false;
+
 socket.on('loginSuccess', initGame);
 socket.on('nameTaken', handleNameTaken);
 socket.on('serverFull', handleServerFull);

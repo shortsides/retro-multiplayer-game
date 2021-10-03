@@ -1,4 +1,4 @@
-import { SPRITES } from "../../index.js";
+import { devMode, SPRITES } from "../../index.js";
 import { socket } from "../../index.js";
 import { playerSprite } from "../../index.js";
 
@@ -50,7 +50,9 @@ export default class SceneMainBuildingBasement extends Phaser.Scene {
         const cursors = new Cursors(this);
 
         // Debug graphics
-        //cursors.debugGraphics(this, worldLayer);
+        if (devMode) {
+            cursors.debugGraphics(this, worldLayer);
+        }
 
         // Create chat window
         this.chat = this.add.dom(16, 16).createFromCache("chat")
@@ -144,6 +146,10 @@ export default class SceneMainBuildingBasement extends Phaser.Scene {
         const playerActions = new PlayerActions(this);
         playerActions.movePlayer(this);
         this.playerContainer.isColliding = false;
+
+        if (devMode) {
+            this.debugPos.setText(`${this.playerContainer.body.position.x}, ${this.playerContainer.body.position.y}`);
+        }
         
         // check if player has left basement
         if (405 > this.playerContainer.body.position.x < 415 && this.playerContainer.body.position.y < 360) {

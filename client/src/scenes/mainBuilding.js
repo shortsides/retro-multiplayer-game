@@ -1,4 +1,4 @@
-import { SPRITES } from "../../index.js";
+import { devMode, SPRITES } from "../../index.js";
 import { socket } from "../../index.js";
 import { playerSprite } from "../../index.js";
 
@@ -51,7 +51,9 @@ export default class SceneMainBuilding extends Phaser.Scene {
         const cursors = new Cursors(this);
 
         // Debug graphics
-        //cursors.debugGraphics(this, worldLayer);
+        if (devMode) {
+            cursors.debugGraphics(this, worldLayer);
+        }
 
         // Add fire animations
         this.add.sprite(688, 534, 'fire2').setScale(1.5).play('fire_anim2');
@@ -153,6 +155,9 @@ export default class SceneMainBuilding extends Phaser.Scene {
         playerActions.movePlayer(this);
         this.playerContainer.isColliding = false;
 
+        if (devMode) {
+            this.debugPos.setText(`${this.playerContainer.body.position.x}, ${this.playerContainer.body.position.y}`);
+        }
 
         // check if player has left main building
         if (this.playerContainer.body.position.y > 640) {

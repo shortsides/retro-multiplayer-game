@@ -18,9 +18,9 @@ function Main() {
         }
     });
     
-
-    // local testing config
     /*
+    // local testing config
+    
     const io = new socket_io.Server(server, {
         cors: {
             origin: "*"

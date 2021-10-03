@@ -1,4 +1,4 @@
-import { SPRITES } from "../../index.js";
+import { devMode, SPRITES } from "../../index.js";
 import { socket } from "../../index.js";
 
 import PlayerManager from "../player_manager.js";
@@ -51,7 +51,9 @@ export default class SceneWorld extends Phaser.Scene {
         const cursors = new Cursors(this);
 
         // Debug graphics
-        //cursors.debugGraphics(this, worldLayer);
+        if (devMode) {
+            cursors.debugGraphics(this, worldLayer);
+        }
 
         // Create chat window
         this.chat = this.add.dom(16, 16).createFromCache("chat")
@@ -151,6 +153,9 @@ export default class SceneWorld extends Phaser.Scene {
         playerActions.movePlayer(this);
         this.playerContainer.isColliding = false;
 
+        if (devMode) {
+            this.debugPos.setText(`${this.playerContainer.body.position.x}, ${this.playerContainer.body.position.y}`);
+        }
 
         // check if player has gone into main building
         if (this.playerContainer.body.position.x > 1150 && this.playerContainer.body.position.y < 590) {
