@@ -185,8 +185,7 @@ export default class SceneMainBuildingBasement extends Phaser.Scene {
 
         this.physics.add.overlap(this.snakeBox, this.playerContainer, function() {
 
-            let keySpace = self.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-            keySpace.on("down", () => {
+            self.cursors.space.on("down", () => {
 
                 if (this.dialogueActive) {
                     return;

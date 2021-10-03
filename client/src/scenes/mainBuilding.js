@@ -153,6 +153,7 @@ export default class SceneMainBuilding extends Phaser.Scene {
         playerActions.movePlayer(this);
         this.playerContainer.isColliding = false;
 
+
         // check if player has left main building
         if (this.playerContainer.body.position.y > 640) {
 
@@ -207,24 +208,26 @@ export default class SceneMainBuilding extends Phaser.Scene {
         
         // listen for player collisions with inkeeper container
         self.physics.add.overlap(self.innKeeperContainer, self.playerContainer, function() {
+            
+            // interact with inkeeper NPC on 'space'
+            self.cursors.space.on("down", () => {
 
-            let keySpace = self.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-            keySpace.on("down", () => {
+                if (self.dialogueActive) {
+                    return;
+                }
 
                 if (!self.innKeeperContainer.body.embedded && self.innKeeperContainer.body.touching.none) {
                     return;
                 }
                 
-                if (self.dialogueActive === false) {
-                    self.dialogueActive = true;
-                    self.innkeeper.setTexture(SPRITES[0].spriteSheet, 20) // face the player
-                    self.innkeeper.readDialogue("hello");
-                    self.player.anims.stop();
-                    self.player.setTexture(playerSprite.spriteSheet, playerSprite.right);
-                    return;
-                }
+                self.dialogueActive = true;
+                self.innkeeper.setTexture(SPRITES[0].spriteSheet, 20) // face the player
+                self.innkeeper.readDialogue("hello");
+                self.player.anims.stop();
+                self.player.setTexture(playerSprite.spriteSheet, playerSprite.right);
                 
             });
+
         });
     }
 

@@ -66,8 +66,7 @@ export default class NPC extends Phaser.GameObjects.Sprite {
         }
 
         // when user presses space...
-        let keySpace = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-        keySpace.on("down", () => {
+        this.scene.cursors.space.on("down", () => {
             
             if (!this.scene.dialogueActive) {
                 return;
@@ -87,7 +86,6 @@ export default class NPC extends Phaser.GameObjects.Sprite {
                         this.readDialogue(this.scene.blurb.linkTo)
                         return;
                     } else {
-                        keySpace.reset();
                         this.exitDialogue();
                         return;
                     }
@@ -259,7 +257,6 @@ export default class NPC extends Phaser.GameObjects.Sprite {
         this.scene.subtitleBox.setAlpha(0);
         this.scene.subtitleArrow.setAlpha(0);
 
-        //this.scene.blurb = null;
         this.scene.lineIndex = 0;
         this.scene.allowUserInput = false;
 

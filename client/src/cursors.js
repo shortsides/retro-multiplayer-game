@@ -13,8 +13,12 @@ export default class Cursors extends Phaser.Scene {
             down: self.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN),
             enter: self.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER),
             shift: self.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SHIFT),
+            space: self.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE),
             //i: self.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.I)
         }
+
+        // allow all keys to be used in DOM elements e.g. using SPACE in typing in chat
+        self.input.keyboard.disableGlobalCapture()
 
         // If "Enter" is pressed, send message
         self.cursors.enter.on("down", event => {

@@ -188,8 +188,7 @@ export default class SceneWorld extends Phaser.Scene {
         // create player collisions with propeller container
         this.physics.add.overlap(this.propellerContainer, this.playerContainer, function() {
 
-            let keySpace = self.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-            keySpace.on("down", () => {
+            self.cursors.space.on("down", () => {
 
                 if (!self.propellerContainer.body.embedded && self.propellerContainer.body.touching.none) {
                     return;

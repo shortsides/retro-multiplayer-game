@@ -46,8 +46,8 @@ export default class PlayerController {
             this.handleChatMessage(message);
         })
 
-        this.client_io.on("inventory", function(items, coins) {
-            this.updateInventory(items, coins);
+        this.client_io.on("inventory", items => {
+            this.updateInventory(items);
         })
 
         this.client_io.on("updateCoins", coins => {
@@ -145,9 +145,8 @@ export default class PlayerController {
 
 
     // when a player's inventory state changes, update inventory
-    updateInventory(items, coins) {
+    updateInventory(items) {
         this.state.inventory = items;
-        this.state.coins = coins;
     }
 
     // add new coins (e.g. from minigame) to player's coins

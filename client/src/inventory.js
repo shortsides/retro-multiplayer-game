@@ -113,12 +113,17 @@ export default class InventoryManager extends Phaser.Scene {
         updateCoins(newCoinCount) {
             this.coins = newCoinCount;
             this.displayCoins();
-            this.sendInventory();
+            this.updateCoins();
         }
       
         // send current inventory state to server
         sendInventory() {
-            socket.emit('inventory', this.items, this.coins);
+            socket.emit('inventory', this.items);
+        }
+
+        // send current coin count to server
+        updateCoins() {
+            socket.emit("updateCoins", this.coins);
         }
 
 
