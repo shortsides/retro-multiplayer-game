@@ -170,11 +170,11 @@ export default class SceneMainBuildingBasement extends Phaser.Scene {
 
 
         if (devMode) {
-            this.debugPos.setText(`${this.playerContainer.body.position.x}, ${this.playerContainer.body.position.y}`);
+            this.debugPos.setText(`${this.playerContainer.body.position.x - 11}, ${this.playerContainer.body.position.y - 15}`);
         }
         
         // check if player has left basement
-        if (405 > this.playerContainer.body.position.x < 415 && this.playerContainer.body.position.y < 360) {
+        if (this.playerContainer.body.position.x < 415 && this.playerContainer.body.position.y < 360) {
 
             // pause player position
             this.playerContainer.body.moves = false;

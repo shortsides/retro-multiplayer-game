@@ -180,11 +180,11 @@ export default class SceneWorld extends Phaser.Scene {
 
 
         if (devMode) {
-            this.debugPos.setText(`${this.playerContainer.body.position.x}, ${this.playerContainer.body.position.y}`);
+            this.debugPos.setText(`${this.playerContainer.body.position.x - 11}, ${this.playerContainer.body.position.y - 15}`);
         }
 
         // check if player has gone into main building
-        if (this.playerContainer.body.position.x > 1150 && this.playerContainer.body.position.y < 590) {
+        if (this.playerContainer.body.position.x > 1140 && this.playerContainer.body.position.y < 600) {
 
             // pause player position
             this.playerContainer.body.velocity.x = 0;

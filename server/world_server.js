@@ -40,7 +40,7 @@ export const SCENES = [
         name: 'SceneWorld',
         position: {
             x: 1167,
-            y: 613
+            y: 625
         }
     }
 ]

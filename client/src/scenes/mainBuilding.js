@@ -177,7 +177,7 @@ export default class SceneMainBuilding extends Phaser.Scene {
         // ------------------------------
 
         if (devMode) {
-            this.debugPos.setText(`${this.playerContainer.body.position.x}, ${this.playerContainer.body.position.y}`);
+            this.debugPos.setText(`${this.playerContainer.body.position.x - 11}, ${this.playerContainer.body.position.y - 15}`);
         }
 
         // check if player has left main building
