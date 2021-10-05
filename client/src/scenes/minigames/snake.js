@@ -129,37 +129,10 @@ export default class MiniGameSnake extends Phaser.Scene {
             for (let player of state.players) {
                 paintPlayer(player, size);
             }
-        
-            // display any messages
-            //gameConsole.innerText = state.message;
-        
-            // update heading for each player
-            if (playerNumber === 1) {
-                gameHeader.innerText = `${SNAKE_COLOURS[0]} PLAYER`;
-                //gameHeader.style.color = SNAKE_COLOURS[0];
-                livesCount.innerText = `${HEART.repeat(state.players[0].lives)}`;
-                pointsCount.innerText = state.players[0].points;
-            } else if (playerNumber === 2) {
-                gameHeader.innerText = `${SNAKE_COLOURS[1]} PLAYER`;
-                //gameHeader.style.color = SNAKE_COLOURS[1];
-                livesCount.innerText = `${HEART.repeat(state.players[1].lives)}`;
-                pointsCount.innerText = state.players[1].points;
-            } else if (playerNumber === 3) {
-                gameHeader.innerText = `${SNAKE_COLOURS[2]} PLAYER`;
-                //gameHeader.style.color = SNAKE_COLOURS[2];
-                livesCount.innerText = `${HEART.repeat(state.players[2].lives)}`;
-                pointsCount.innerText = state.players[2].points;
-            } else if (playerNumber === 4) {
-                gameHeader.innerText = `${SNAKE_COLOURS[3]} PLAYER`;
-                //gameHeader.style.color = SNAKE_COLOURS[3];
-                livesCount.innerText = `${HEART.repeat(state.players[3].lives)}`;
-                pointsCount.innerText = state.players[3].points;
-            } else if (playerNumber === 5) {
-                gameHeader.innerText = `${SNAKE_COLOURS[4]} PLAYER`;
-                //gameHeader.style.color = SNAKE_COLOURS[4];
-                livesCount.innerText = `${HEART.repeat(state.players[4].lives)}`;
-                pointsCount.innerText = state.players[4].points;
-            }
+            
+            // update lives and points
+            livesCount.innerText = `${HEART.repeat(state.players[playerNumber - 1].lives)}`;
+            pointsCount.innerText = state.players[playerNumber - 1].points;
         
         }
         
@@ -177,6 +150,7 @@ export default class MiniGameSnake extends Phaser.Scene {
         function handleInit(number, player_list) {
             playerNumber = number;
             gameHeader.innerText = `${SNAKE_COLOURS[playerNumber - 1]} PLAYER`;
+            gameHeader.style.color = SNAKE_COLOURS[playerNumber - 1];
             
             updatePlayerLobby(player_list);
 
@@ -198,6 +172,7 @@ export default class MiniGameSnake extends Phaser.Scene {
             }
             
             exitButton2.style.display = 'block';
+            gameConsole.style.color = 'white';
             gameConsole.innerText = 'GAME OVER';
 
             let coinReward = document.createElement('p');
@@ -274,7 +249,8 @@ export default class MiniGameSnake extends Phaser.Scene {
         
         function handleCountdown() {
             startBtn.style.display = 'none'; // hide start button
-            gameConsole.innerText = 'STARTING GAME...';
+            gameConsole.innerText = `YOU ARE ${SNAKE_COLOURS[playerNumber - 1]}... `;
+            gameConsole.style.color = SNAKE_COLOURS[playerNumber - 1];
             // countdown timer
             var timeleft = 5;
             var downloadTimer = setInterval(function(){
@@ -283,7 +259,7 @@ export default class MiniGameSnake extends Phaser.Scene {
                 gameConsole.innerText = '';
               } else {
                 //gameHeader.innerHTML = timeleft;
-                gameConsole.innerText = 'STARTING GAME... ' + timeleft;
+                gameConsole.innerText = `YOU ARE ${SNAKE_COLOURS[playerNumber - 1]} ` + timeleft;
               }
               timeleft -= 1;
             }, 1000);
