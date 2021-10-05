@@ -91,36 +91,44 @@ export default class WorldController {
 
         if (miniGameName === 'MiniGameSnake') {
 
-            let snakeGame;
+            let snakeGame = false;
             let snakeGames = this.miniGames.snake;
 
             if (snakeGames.length === 0) {
                 snakeGame = new MiniGameController(this.io, SNAKE_MAX_CAPACITY);
                 snakeGame.createLobby(client);
                 snakeGames.push(snakeGame);
+                console.log('no snake games, creating new one');
             } else {
                 let self = this;
-                Object.keys(snakeGames).forEach(function (i) {
-                    if (snakeGames[i].isAcceptingPlayers()) {
-                        snakeGame = snakeGames[i];
+                for (let game of snakeGames) {
+                    if (game.isAcceptingPlayers()) {
+                        snakeGame = game;
                         snakeGame.addPlayer(client);
-                    } else {
-                        snakeGame = new MiniGameController(self.io, SNAKE_MAX_CAPACITY);
-                        snakeGame.createLobby(client);
-                        snakeGames.push(snakeGame);
+                        break;
                     }
-                });
+                }
+                if (!snakeGame) {
+                    snakeGame = new MiniGameController(self.io, SNAKE_MAX_CAPACITY);
+                    snakeGame.createLobby(client);
+                    snakeGames.push(snakeGame);
+                    console.log('all snake games are full, creating new one');
+                }
+                
             }
+
+            console.log(snakeGames);
 
             client.on('keydown', keyCode => {
                 snakeGame.handleKeydown(keyCode, client);
             });
 
-            client.once('leaveMiniGame', () => {
+            client.on('leaveMiniGame', () => {
                 this.leaveMiniGame(client);
             })
 
             client.once("startGame", () => {
+                console.log(snakeGame.gameId); // note: this must be called once so snakeGame is reset when joining a second game
                 snakeGame.handleStartGame(miniGameName);
             })
             

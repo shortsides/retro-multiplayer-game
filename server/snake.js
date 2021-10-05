@@ -19,6 +19,7 @@ export default class SnakeGame {
 
         initGame() {
             const room = this.io.sockets.adapter.rooms.get(this.gameId);
+            console.log(room)
             const numberOfPlayers = room.size;
 
             console.log(`starting snake game ${this.gameId} with ${numberOfPlayers} players`);

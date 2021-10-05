@@ -197,6 +197,7 @@ export default class MiniGameSnake extends Phaser.Scene {
                 gameConsole.appendChild(coinReward);
             }
 
+            socket.emit("leaveMiniGame");
             socket.emit("updateCoins", score);
 
             resetGame();
