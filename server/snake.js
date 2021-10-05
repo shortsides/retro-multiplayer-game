@@ -250,7 +250,7 @@ export default class SnakeGame {
                                 if (!otherPlayer.isAlive) {
                                     break;
                                 }
-                                if (otherPlayer.snake[otherPlayer.snake.length - 1].x === cell.x && otherPlayer.snake[otherPlayer.snake.length - 1].y === cell.y) {
+                                if (otherPlayer.pos.x === cell.x && otherPlayer.pos.y === cell.y) {
                                     // then player 2 loses a life
                                     console.log(`${otherPlayer.colour} player hit ${player.colour} player`);
                                     return this.loseLife(otherPlayer);
