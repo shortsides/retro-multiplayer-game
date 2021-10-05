@@ -25,14 +25,14 @@ export const SCENES = [
     {
         name: 'SceneMainBuildingBasement',
         position: {
-            x: 400,
-            y: 375
+            x: 421,
+            y: 400
         },
         altEntrances: [
             {
                 from: 'MiniGameSnake',
                 x: 310,
-                y: 505
+                y: 510
             }
         ]
     },
@@ -82,10 +82,6 @@ export default class WorldController {
         };
         this.leaveMiniGame(client_io);
         
-    }
-
-
-    startGameInterval() {
     }
 
 

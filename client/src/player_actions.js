@@ -1,4 +1,4 @@
-import { socket } from "../index.js";
+import { client_id, lag_ms, socket } from "../index.js";
 import { playerSprite } from "../index.js";
 
 export default class PlayerActions extends Phaser.Scene {
@@ -15,15 +15,21 @@ export default class PlayerActions extends Phaser.Scene {
 
         const speed = 175;
         const prevVelocity = self.playerContainer.body.velocity.clone();
-        const prevPosition = self.playerContainer.body.position.clone();
+
     
         // if player has stopped in the last frame, tell server velocity is 0
+        /*
         if (!self.stoppedLog && self.playerContainer.body.velocity.x === 0 && self.playerContainer.body.velocity.y === 0) {
             self.stoppedLog = true;
             socket.emit('playerMovement', {
                 velocity: self.playerContainer.body.velocity,
                 position: self.playerContainer.body.position
             });
+        }
+        */
+        // If player is colliding with an object or world boundary, don't send movement updates
+        if (self.playerContainer.isColliding) {
+            return;
         }
         
         // Stop any previous movement from the last frame
@@ -57,17 +63,30 @@ export default class PlayerActions extends Phaser.Scene {
             else if (prevVelocity.y > 0) self.player.setTexture(playerSprite.spriteSheet, playerSprite.front);
         }
 
-        // If player is colliding with an object or world boundary, don't send movement updates
-        if (self.playerContainer.isColliding) {
-            return;
-        }
-        
+        return;
+
+        // ------------------------------ OLD MOVEMENT LOGIC ---------------------------------------------------
+
         // Send movement updates to server every frame
         const movementData = {
             velocity: self.playerContainer.body.velocity,
             position: self.playerContainer.body.position
         }
-        socket.emit('playerMovement', movementData);
+
+
+        // SIMULATE SERVER LAG
+        //------------------------------------------------------------------------
+        
+        let timeout = Math.random() * 500;
+        setTimeout(function(){ 
+            socket.emit('playerMovement', movementData);
+        }, timeout);
+        
+        //------------------------------------------------------------------------
+
+
+        //socket.emit('playerMovement', movementData);
+
         /*
         if (prevVelocity.x !== self.playerContainer.body.velocity.x || prevVelocity.y !== self.playerContainer.body.velocity.y) {
             socket.emit('playerMovement', movementData);

@@ -73,7 +73,7 @@ export default class SceneWorld extends Phaser.Scene {
             .setDepth(30)
         
         // Create player manager in scene
-        this.playerManager = new PlayerManager(this);
+        this.playerManager = new PlayerManager(scene);
         
         // Turn off camera initially until player info is loaded from server
         this.cameras.main.visible = false;
@@ -109,10 +109,16 @@ export default class SceneWorld extends Phaser.Scene {
             
         })
     
+        /*
         // Handle other player movements
-        socket.on('playerMoved', function(playerInfo, ticker) {
+        socket.on('otherPlayerMoved', function(playerInfo, ticker) {
             self.playerManager.moveOtherPlayers(self, playerInfo, ticker, scene)
         })
+        */
+
+        socket.on('playerMoved', message => {
+            self.playerManager.messages.push(message);
+        });
         
         // remove players who leave the scene
         socket.on('playerChangedScene', function (player) {
@@ -149,9 +155,30 @@ export default class SceneWorld extends Phaser.Scene {
             return
         }
 
-        const playerActions = new PlayerActions(this);
-        playerActions.movePlayer(this);
+        if (this.dialogueActive) { // do not run if player is interacting with non-player objects
+            return;
+        }
+
+        // ------------------------------ NEW PLAYER-SERVER MOVEMENT LOGIC ------------------------------
+        const prevVelocity = this.playerContainer.body.velocity.clone();
+
+        if (!this.playerContainer.isColliding) {
+            // Listen to the server.
+            this.playerManager.processServerMessages(this.playerContainer, this.otherPlayers);
+
+            // Process inputs.
+            this.playerManager.processInputs(this);
+
+            // Interpolate other entities.
+            this.playerManager.interpolateEntities(this.otherPlayers);
+
+            // Play movement animations
+            this.playerManager.playWalkingAnims(this, prevVelocity);
+        }
+
         this.playerContainer.isColliding = false;
+        // ------------------------------
+
 
         if (devMode) {
             this.debugPos.setText(`${this.playerContainer.body.position.x}, ${this.playerContainer.body.position.y}`);
@@ -161,7 +188,8 @@ export default class SceneWorld extends Phaser.Scene {
         if (this.playerContainer.body.position.x > 1150 && this.playerContainer.body.position.y < 590) {
 
             // pause player position
-            this.playerContainer.body.moves = false;
+            this.playerContainer.body.velocity.x = 0;
+            this.playerContainer.body.velocity.y = 0;
             this.cameras.main.fadeOut(2000);
 
             // change scene

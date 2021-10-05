@@ -72,7 +72,7 @@ export default class SceneMainBuildingBasement extends Phaser.Scene {
             .setDepth(30)
         
         // Create player manager in scene
-        this.playerManager = new PlayerManager(this);
+        this.playerManager = new PlayerManager(scene);
 
         // Turn off camera initially until player info is loaded from server
         this.cameras.main.visible = false;
@@ -105,10 +105,16 @@ export default class SceneMainBuildingBasement extends Phaser.Scene {
             
         })
     
+        /*
         // Handle other player movements
-        socket.on('playerMoved', function(playerInfo, ticker) {
+        socket.on('otherPlayerMoved', function(playerInfo, ticker) {
             self.playerManager.moveOtherPlayers(self, playerInfo, ticker, scene)
         })
+        */
+
+        socket.on('playerMoved', message => {
+            self.playerManager.messages.push(message);
+        });
 
         // remove players who leave the scene
         socket.on('playerChangedScene', function (player) {
@@ -143,9 +149,26 @@ export default class SceneMainBuildingBasement extends Phaser.Scene {
             return;
         }
 
-        const playerActions = new PlayerActions(this);
-        playerActions.movePlayer(this);
+        // ------------------------------ NEW PLAYER-SERVER MOVEMENT LOGIC ------------------------------
+        const prevVelocity = this.playerContainer.body.velocity.clone();
+
+        if (!this.playerContainer.isColliding) {
+            // Listen to the server.
+            this.playerManager.processServerMessages(this.playerContainer, this.otherPlayers);
+
+            // Process inputs.
+            this.playerManager.processInputs(this);
+
+            // Interpolate other entities.
+            this.playerManager.interpolateEntities(this.otherPlayers);
+
+            // Play movement animations
+            this.playerManager.playWalkingAnims(this, prevVelocity);
+        }
+
         this.playerContainer.isColliding = false;
+        // ------------------------------
+
 
         if (devMode) {
             this.debugPos.setText(`${this.playerContainer.body.position.x}, ${this.playerContainer.body.position.y}`);
@@ -202,7 +225,8 @@ export default class SceneMainBuildingBasement extends Phaser.Scene {
                 }
                 
                 // pause player position
-                self.playerContainer.body.moves = false;
+                self.playerContainer.body.velocity.x = 0;
+                self.playerContainer.body.velocity.y = 0;
                 //self.cameras.main.fadeOut(2000);
 
                 // change scene

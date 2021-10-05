@@ -16,6 +16,7 @@ export const socket = io("https://agile-meadow-49870.herokuapp.com/", {
 
 // global developer mode toggle for debugging tools
 export const devMode = false;
+export const lag_ms = 250;
 
 socket.on('loginSuccess', initGame);
 socket.on('nameTaken', handleNameTaken);
@@ -30,6 +31,7 @@ const playButton = document.getElementById('playButton');
 playButton.addEventListener('click', login);
 
 export let playerName;
+export let client_id;
 export let playerSprite;
 
 export const FRAME_RATE = 10;
@@ -181,9 +183,9 @@ function handleNameTaken() {
     initialScreenMessage.innerText = `The name ${playerName} is taken`;
 }
 
-function initGame() {
+function initGame(id) {
 
-
+    client_id = id;
 
     playerSprite = getUserSprite(playerName);
 
