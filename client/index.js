@@ -16,7 +16,7 @@ export const socket = io("https://agile-meadow-49870.herokuapp.com/", {
 
 // global developer mode toggle for debugging tools
 export const devMode = false;
-export const lag_ms = 250;
+export const lag_ms = 0;
 
 socket.on('loginSuccess', initGame);
 socket.on('nameTaken', handleNameTaken);
