@@ -5,17 +5,17 @@ import SceneWorld from "./src/scenes/World.js";
 import MiniGameSnake from "./src/scenes/minigames/snake.js";
 
 // production server config
-/*
+
 export const socket = io("https://agile-meadow-49870.herokuapp.com/", {
   withCredentials: true,
 });
-*/
+
 
 // local testing config
-export const socket = io('http://localhost:3000/');
+//export const socket = io('http://localhost:3000/');
 
 // global developer mode toggle for debugging tools
-export const devMode = true;
+export const devMode = false;
 export const lag_ms = 0;
 
 socket.on('loginSuccess', initGame);
