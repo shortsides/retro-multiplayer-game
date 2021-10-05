@@ -5,7 +5,6 @@ import { playerSprite } from "../../index.js";
 import PlayerManager from "../player_manager.js";
 import Anims from "../anim_manager.js";
 import Cursors from "../cursors.js";
-import PlayerActions from "../player_actions.js";
 import ChatManager from "../chat_manager.js";
 import NPC from "../NPC.js";
 import InventoryManager from "../Inventory.js";
