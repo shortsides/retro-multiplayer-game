@@ -1,13 +1,11 @@
-import { devMode, lag_ms, SPRITES } from "../../index.js";
+import { devMode, SPRITES } from "../../index.js";
 import { socket } from "../../index.js";
 import { playerSprite } from "../../index.js";
 
 import PlayerManager from "../player_manager.js";
-import Anims from "../anim_manager.js";
 import Cursors from "../cursors.js";
 import ChatManager from "../chat_manager.js";
 import NPC from "../NPC.js";
-import InventoryManager from "../Inventory.js";
 import { innkeeperConfig } from "../NPC_char.js";
 
 export default class SceneMainBuilding extends Phaser.Scene {
@@ -21,6 +19,10 @@ export default class SceneMainBuilding extends Phaser.Scene {
         this.stoppedLog = true;
         this.otherPlayers;
         this.dialogueActive = false;
+        this.allowedActions = {
+            move: true,
+            attack: false,
+        }
     }
 
     preload() {
@@ -81,20 +83,36 @@ export default class SceneMainBuilding extends Phaser.Scene {
         // Turn off camera initially until player info is loaded from server
         this.cameras.main.visible = false;
     
-        // When this player joins, spawn all current players in room
-        socket.on('currentPlayers', function (players) {
-            self.otherPlayers = self.physics.add.group();
+        
+
+        async function spawnThisPlayer (players) {
             Object.keys(players).forEach(function (id) {
                 if (players[id].playerId === socket.id) {
                     self.playerManager.addPlayer(self, players[id], worldLayer, map);
-
                     self.afterPlayerSpawn();
-
-                } else {
-                    self.playerManager.addOtherPlayers(self, players[id], worldLayer);
+                    console.log('this player spawned');
                 }
             });
-        });
+            return;
+        }
+
+        async function spawnAllPlayers (players) {
+            // First spawn this player
+            await spawnThisPlayer(players);
+
+            // Then spawn other players
+            self.otherPlayers = self.physics.add.group();
+            Object.keys(players).forEach(function (id) {
+                if (players[id].playerId !== socket.id) {
+                    self.playerManager.addOtherPlayers(self, players[id], worldLayer);;
+                }
+            });
+            console.log('all players spawned');
+        }
+
+        // When this player joins, spawn all current players in room
+        socket.on('currentPlayers', spawnAllPlayers);
+        
         
         // When a new player joins, spawn them
         socket.on('newPlayer', function (playerInfo) {
@@ -106,7 +124,7 @@ export default class SceneMainBuilding extends Phaser.Scene {
                 chat.alertRoom(self, `${playerInfo.name} joined the game.`)
             }
             self.playerManager.addOtherPlayers(self, playerInfo, worldLayer, scene);
-            
+            console.log(`spawned new player in ${scene}`);
         })
         
         /*
@@ -119,6 +137,10 @@ export default class SceneMainBuilding extends Phaser.Scene {
         socket.on('playerMoved', message => {
             self.playerManager.messages.push(message);
         });
+
+        socket.on('playerDamaged', playerState => {
+            self.playerManager.handleDamage(self, playerState);
+        })
 
         // remove players who leave the scene
         socket.on('playerChangedScene', function (player) {
@@ -156,10 +178,10 @@ export default class SceneMainBuilding extends Phaser.Scene {
             return;
         }
 
-        // ------------------------------ NEW PLAYER-SERVER MOVEMENT LOGIC ------------------------------
-        const prevVelocity = this.playerContainer.body.velocity.clone();
+        // ------------------------------ PLAYER-SERVER MOVEMENT LOGIC ------------------------------
 
         if (!this.playerContainer.isColliding) {
+
             // Listen to the server.
             this.playerManager.processServerMessages(this.playerContainer, this.otherPlayers);
 
@@ -170,9 +192,9 @@ export default class SceneMainBuilding extends Phaser.Scene {
             this.playerManager.interpolateEntities(this.otherPlayers);
 
             // Play movement animations
-            this.playerManager.playWalkingAnims(this, prevVelocity);
+            this.playerManager.playerAnims(this);
         }
-
+        
         this.playerContainer.isColliding = false;
         // ------------------------------
 
@@ -252,10 +274,135 @@ export default class SceneMainBuilding extends Phaser.Scene {
                 self.innkeeper.readDialogue("hello");
                 self.player.anims.stop();
                 self.player.setTexture(playerSprite.spriteSheet, playerSprite.right);
+                self.playerManager.direction = 'right';
                 
             });
 
         });
+
+
+        // Unpause player actions after action completes e.g. after attacking
+        this.player.on('animationcomplete', function (anim, frame) {
+            this.emit('animationcomplete_' + anim.key, anim, frame);
+        }, this.player);
+
+        this.player.on(`animationcomplete_${playerSprite.spriteSheet}-left-sword`, function () {
+            self.playerManager.allowSendInputs = true;
+            self.playerManager.currentAction = null;
+            self.allowedActions.move = true;
+            self.allowedActions.attack = true;
+        });
+
+        this.player.on(`animationcomplete_${playerSprite.spriteSheet}-right-sword`, function () {
+            self.playerManager.allowSendInputs = true;
+            self.playerManager.currentAction = null;
+            self.allowedActions.move = true;
+            self.allowedActions.attack = true;
+        });
+
+        this.player.on(`animationcomplete_${playerSprite.spriteSheet}-back-sword`, function () {
+            self.playerManager.allowSendInputs = true;
+            self.playerManager.currentAction = null;
+            self.allowedActions.move = true;
+            self.allowedActions.attack = true;
+        });
+
+        this.player.on(`animationcomplete_${playerSprite.spriteSheet}-front-sword`, function () {
+            self.playerManager.allowSendInputs = true;
+            self.playerManager.currentAction = null;
+            self.allowedActions.move = true;
+            self.allowedActions.attack = true;
+        });
+
+
+        /*
+        // TEST NPC FIGHTING ANIMS
+        let enemyContainer = this.add.container(500, 540)
+        enemyContainer.setSize(24, 34);
+        this.physics.world.enable(enemyContainer);
+        enemyContainer.body.debugBodyColor = 0xadfefe;
+        enemyContainer.body.setImmovable(true);
+        this.physics.add.collider(this.playerContainer, enemyContainer);
+
+        let enemy = this.physics.add.sprite(0, 0, 'midora-sword-short', 0);
+        enemy.id = 1;
+
+        let enemyHitBox = this.add.rectangle(500 - 22, 540, 40, 60);
+        this.physics.world.enable(enemyHitBox);
+        enemyHitBox.body.setImmovable(true);
+        enemyHitBox.body.debugBodyColor = 0xb21d0a;
+
+        enemyContainer.add(enemy, enemyHitBox);
+        
+        this.cursors.w.on("down", () => {
+            enemy.play('midora-sword-attack-short'); // play attack anim
+            
+        })
+        
+        let attackData = {}
+        let attackLogged = false;
+
+        enemy.on('attack', function (attackData) {
+            
+            // display damage as red tint on sprite
+            if (attackData.victimId === socket.id) {
+
+                self.tweens.addCounter({
+                    from: 0,
+                    to: 3,
+                    duration: 400,
+                    onUpdate: function (t) {
+                        let value = t.getValue();
+
+                        if (value < 1) {
+                            self.player.setTint(0xff2b2b, 0xff2b2b, 0xff2b2b, 0xff2b2b)
+                        }
+                        else if (value < 2 && value >= 1) {
+                            self.player.clearTint()
+                        } else {
+                            self.player.setTint(0xff2b2b, 0xff2b2b, 0xff2b2b, 0xff2b2b)
+                        }
+                    },
+                    onComplete: function() {
+                        self.player.clearTint()
+                    }
+                });
+
+            }
+
+            // emit attack to server to validate attack
+            socket.emit('attack', attackData);
+        })
+        
+        this.physics.add.overlap(self.playerContainer, enemyHitBox, function() {
+
+            // display health bar
+            document.getElementById(`health_bar_${socket.id}`).style.display = 'block';
+
+            if (enemy.anims.getName() === 'midora-sword-attack-short') {
+                let attackFrame = enemy.anims.currentFrame.index;
+                if (attackFrame >= 5 && attackFrame < 7) {
+
+                    attackData = {
+                        attackerId: enemy.id,
+                        victimId: socket.id,
+                        damage: 5,
+                        attackType: 'sword'
+                    }
+                    
+                    if (!attackLogged) {
+                        enemy.emit('attack', attackData);
+                    }
+                    attackLogged = true;
+                }
+                if (attackFrame >= 7) {
+                    attackLogged = false;
+                }
+            }
+            
+        })
+        */
+
     }
 
 }

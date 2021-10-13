@@ -10,17 +10,17 @@ export default class PlayerManager extends Phaser.Scene {
 
         this.scene = scene;
 
-        // ------------------------------ NEW PLAYER-SERVER MOVEMENT LOGIC ------------------------------
         this.messages = [];
         this.input_sequence_number = 0;
         this.pending_inputs = [];
         this.client_side_prediction = true;
         this.server_reconciliation = true;
         this.entity_interpolation = true;
-        this.speed = 170;
+        this.speed = 140;
+        this.direction = 'front';
+        this.allowSendInputs = true;
+        this.currentAction = null;
     }
-
-    // ------------------------------ NEW PLAYER-SERVER MOVEMENT LOGIC ------------------------------
 
 
     processServerMessages(player, otherPlayers) {
@@ -55,6 +55,16 @@ export default class PlayerManager extends Phaser.Scene {
 
         // Package player's input.
         var input;
+
+        // Record action
+        if (this.currentAction === 'attack') {
+            input = { press_time: 0.01, action: 'attack' };
+            this.allowSendInputs = false;
+            this.sendInputs(self, input);
+            return;
+        }
+
+        // Record movement
         if (self.cursors.right.isDown) {
             input = { press_time: dt_sec, action: 'move_right' };
         } else if (self.cursors.left.isDown) {
@@ -68,15 +78,24 @@ export default class PlayerManager extends Phaser.Scene {
             input = { press_time: dt_sec, action: 'stop' };
         }
 
+        this.sendInputs(self, input);
+        return;
+
+    }
+
+    sendInputs(self, input) {
+
         // Send the input to the server.
         input.input_sequence_number = this.input_sequence_number++;
         input.entity_id = client_id;
         input.lag_ms = lag_ms;
+        input.direction = this.direction;
+        input.position = self.playerContainer.body.position;
         socket.emit('playerMoved', input);
 
         // Do client-side prediction.
         if (this.client_side_prediction) {
-            this.applyInput(input, self.playerContainer.body);
+            this.applyInput(input, self.playerContainer);
         }
 
         // Save this input for later reconciliation.
@@ -98,16 +117,11 @@ export default class PlayerManager extends Phaser.Scene {
     
     movethisPlayer(player, state) {
 
-        // Update position
-        /*
-        player.body.position.x = state.position.x;
-        player.body.position.y = state.position.y;
-        */
-
         // Stop any previous movement from the last frame
         player.body.velocity.x = 0;
         player.body.velocity.y = 0;
         
+        // Update velocity
         player.body.velocity.x = state.velocity.x;
         player.body.velocity.y = state.velocity.y;
         
@@ -123,7 +137,7 @@ export default class PlayerManager extends Phaser.Scene {
               this.pending_inputs.splice(j, 1);
             } else {
               // Not processed by the server yet. Re-apply it.
-              this.applyInput(input, player.body);
+              this.applyInput(input, player);
               j++;
             }
           }
@@ -133,64 +147,105 @@ export default class PlayerManager extends Phaser.Scene {
         }
     }
 
-    playWalkingAnims(self, prevVelocity) {
+    playerAnims(self) {
 
-        // Handle player movement animations
-        if (self.cursors.left.isDown) {
-            self.player.anims.play(`${playerSprite.spriteNum}-left-walk`, true);
-            self.stoppedLog = false;
-        } else if (self.cursors.right.isDown) {
-            self.player.anims.play(`${playerSprite.spriteNum}-right-walk`, true);
-            self.stoppedLog = false;
-        } else if (self.cursors.up.isDown) {
-            self.player.anims.play(`${playerSprite.spriteNum}-back-walk`, true);
-            self.stoppedLog = false;
-        } else if (self.cursors.down.isDown) {
-            self.player.anims.play(`${playerSprite.spriteNum}-front-walk`, true);
-            self.stoppedLog = false;
-        } else {
-            self.player.anims.stop();
-    
-            // If movement stops, set idle frame
-            if (prevVelocity.x < 0) self.player.setTexture(playerSprite.spriteSheet, playerSprite.left);
-            else if (prevVelocity.x > 0) self.player.setTexture(playerSprite.spriteSheet, playerSprite.right);
-            else if (prevVelocity.y < 0) self.player.setTexture(playerSprite.spriteSheet, playerSprite.back);
-            else if (prevVelocity.y > 0) self.player.setTexture(playerSprite.spriteSheet, playerSprite.front);
-            
+        if (!self.gameActive) {
+            return;
         }
+
+        // Player fighting animations
+        self.cursors.a.on("down", () => {
+
+            if (!self.chatActive) {
+
+                if (self.allowedActions.attack) {
+                    self.allowedActions.move = false;
+                    self.allowedActions.attack = false;
+                    this.currentAction = 'attack';
+        
+                    if (this.direction === 'left') {
+                        self.player.anims.play(`${playerSprite.spriteSheet}-left-sword`);
+                    } else if (this.direction === 'right') {
+                        self.player.anims.play(`${playerSprite.spriteSheet}-right-sword`);
+                    } else if (this.direction === 'back') {
+                        self.player.anims.play(`${playerSprite.spriteSheet}-back-sword`);
+                    } else if (this.direction === 'front') {
+                        self.player.anims.play(`${playerSprite.spriteSheet}-front-sword`);
+                    }
+                }
+
+            }
+
+        })
+
+        // Player movement animations
+        if (self.allowedActions.move) {
+            if (self.cursors.left.isDown) {
+                self.player.anims.play(`${playerSprite.spriteNum}-left-walk`, true);
+                this.direction = 'left';
+                self.stoppedLog = false;
+            } else if (self.cursors.right.isDown) {
+                self.player.anims.play(`${playerSprite.spriteNum}-right-walk`, true);
+                this.direction = 'right';
+                self.stoppedLog = false;
+            } else if (self.cursors.up.isDown) {
+                self.player.anims.play(`${playerSprite.spriteNum}-back-walk`, true);
+                this.direction = 'back';
+                self.stoppedLog = false;
+            } else if (self.cursors.down.isDown) {
+                self.player.anims.play(`${playerSprite.spriteNum}-front-walk`, true);
+                this.direction = 'front';
+                self.stoppedLog = false;
+            } 
+            // If movement stops, stop anims and set idle frame
+            else {
+
+                self.player.anims.stop();
+                
+                if (this.direction === 'left') self.player.setTexture(playerSprite.spriteSheet, playerSprite.left);
+                else if (this.direction === 'right') self.player.setTexture(playerSprite.spriteSheet, playerSprite.right);
+                else if (this.direction === 'back') self.player.setTexture(playerSprite.spriteSheet, playerSprite.back);
+                else if (this.direction === 'front') self.player.setTexture(playerSprite.spriteSheet, playerSprite.front);
+            }
+        }
+
+
 
     }
 
-    applyInput(input, playerBody) {
-
-        // Update position
-        /*
-        if (input.action === 'move_right') {
-            playerBody.position.x += input.press_time*this.speed;
-        } else if (input.action === 'move_left') {
-            playerBody.position.x += -input.press_time*this.speed;
-        } else if (input.action === 'move_up') {
-            playerBody.position.y += -input.press_time*this.speed;
-        } else if (input.action === 'move_down') {
-            playerBody.position.y += input.press_time*this.speed;
-        } else {
-            return;
-        }
-        */
+    applyInput(input, player) {
 
         // Stop any previous movement from the last frame
-        playerBody.velocity.x = 0;
-        playerBody.velocity.y = 0;
+        player.body.velocity.x = 0;
+        player.body.velocity.y = 0;
 
+        let hitBox = player.list[2];
+
+        // Update velocity & hitBox orientation/dimensions
         if (input.action === 'move_right') {
-            playerBody.setVelocityX(this.speed);
+            player.body.setVelocityX(this.speed);
+            hitBox.setPosition(22, 0);
+            hitBox.setDisplaySize(40, 60);
         } else if (input.action === 'move_left') {
-            playerBody.setVelocityX(-this.speed);
+            player.body.setVelocityX(-this.speed);
+            hitBox.setPosition(-22, 0);
+            hitBox.setDisplaySize(40, 60);
         } else if (input.action === 'move_up') {
-            playerBody.setVelocityY(-this.speed);
+            player.body.setVelocityY(-this.speed);
+            hitBox.setPosition(0, -11);
+            hitBox.setDisplaySize(60, 35);
         } else if (input.action === 'move_down') {
-            playerBody.setVelocityY(this.speed);
-        } else {
+            player.body.setVelocityY(this.speed);
+            hitBox.setPosition(0, 12);
+            hitBox.setDisplaySize(85, 40);
+        }
+    
+        /*
+        else if (input.action === 'attack') {
+
+        } 
+        */
+        else {
             return;
         }
     }
@@ -209,7 +264,7 @@ export default class PlayerManager extends Phaser.Scene {
                     otherPlayer.body.position.y = state.position.y - 15;
 
                     // Play walking animations for other player
-                    self.playWalkingAnimsOtherPlayer(otherPlayer, state);
+                    self.otherPlayerAnims(otherPlayer, state);
 
                 } else {
                     // Add it to the position buffer.
@@ -217,7 +272,7 @@ export default class PlayerManager extends Phaser.Scene {
                     otherPlayer.position_buffer.push([timestamp, state.position.x - 11, state.position.y - 15]);
 
                     // Play walking animations for other player
-                    self.playWalkingAnimsOtherPlayer(otherPlayer, state);
+                    self.otherPlayerAnims(otherPlayer, state);
                 }
 
             }
@@ -262,31 +317,43 @@ export default class PlayerManager extends Phaser.Scene {
         })
     }
 
-    playWalkingAnimsOtherPlayer(otherPlayer, state) {
+    otherPlayerAnims(otherPlayer, state) {
+
+        // Other player action anims
+        if (state.action === 'attack') {
+            
+            if (state.direction === 'left') {
+                otherPlayer.first.anims.play(`${otherPlayer.sprite.spriteSheet}-left-sword`, true);
+            } else if (state.direction === 'right') {
+                otherPlayer.first.anims.play(`${otherPlayer.sprite.spriteSheet}-right-sword`, true);
+            } else if (state.direction === 'back') {
+                otherPlayer.first.anims.play(`${otherPlayer.sprite.spriteSheet}-back-sword`, true);
+            } else if (state.direction === 'front') {
+                otherPlayer.first.anims.play(`${otherPlayer.sprite.spriteSheet}-front-sword`, true);
+            }
+        }
         
-        if (state.velocity.x < 0) { // left
+        // Other Player walking anims
+        if (state.direction === 'left' && state.velocity.x < 0) {
             otherPlayer.first.anims.play(`${otherPlayer.sprite.spriteNum}-left-walk`, true);
-        } else if (state.velocity.x > 0) { // right
+        } else if (state.direction === 'right' && state.velocity.x > 0) {
             otherPlayer.first.anims.play(`${otherPlayer.sprite.spriteNum}-right-walk`, true);
-        } else if (state.velocity.y < 0) { // up
+        } else if (state.direction === 'back' && state.velocity.y < 0) {
             otherPlayer.first.anims.play(`${otherPlayer.sprite.spriteNum}-back-walk`, true);
-        } else if (state.velocity.y > 0) { // down
+        } else if (state.direction === 'front' && state.velocity.y > 0) {
             otherPlayer.first.anims.play(`${otherPlayer.sprite.spriteNum}-front-walk`, true);
-        } else {
+        } 
+        
+        // If movement stops, set idle frame
+        else if (state.action === null) {
             otherPlayer.first.anims.stop();
 
-            // If movement stops, set idle frame
-            if (state.sprite === 'left') otherPlayer.first.setTexture(otherPlayer.sprite.spriteSheet, otherPlayer.sprite.left);
-            else if (state.sprite === 'right') otherPlayer.first.setTexture(otherPlayer.sprite.spriteSheet, otherPlayer.sprite.right);
-            else if (state.sprite === 'back') otherPlayer.first.setTexture(otherPlayer.sprite.spriteSheet, otherPlayer.sprite.back);
-            else if (state.sprite === 'front') otherPlayer.first.setTexture(otherPlayer.sprite.spriteSheet, otherPlayer.sprite.front);
+            if (state.direction === 'left') otherPlayer.first.setTexture(otherPlayer.sprite.spriteSheet, otherPlayer.sprite.left);
+            else if (state.direction === 'right') otherPlayer.first.setTexture(otherPlayer.sprite.spriteSheet, otherPlayer.sprite.right);
+            else if (state.direction === 'back') otherPlayer.first.setTexture(otherPlayer.sprite.spriteSheet, otherPlayer.sprite.back);
+            else if (state.direction === 'front') otherPlayer.first.setTexture(otherPlayer.sprite.spriteSheet, otherPlayer.sprite.front);
         }
     }
-
-
-// -------------------------------------------------------------------------------------------
-
-
 
     addPlayer(self, playerInfo, worldLayer, map) {
 
@@ -297,12 +364,15 @@ export default class PlayerManager extends Phaser.Scene {
         // add player sprite
         self.player = self.physics.add
         .sprite(0, -4, playerSprite.spriteSheet, playerSprite.front)
-        .setScale(2)
+        .setScale(1)
+        self.player.name = playerSprite.spriteSheet;
     
         // add player floating name
-        self.playerName = self.add.text(0, -30, `${playerInfo.name}`, {
+        self.playerName = self.add.text(0, -38, `${playerInfo.name}`, {
             font: "14px monospace",
             fill: "#ffffff",
+            stroke: '#000000',
+            strokeThickness: 3
         })
         .setOrigin(0.5)
         .setColor("#ffffff");
@@ -313,9 +383,13 @@ export default class PlayerManager extends Phaser.Scene {
 
         // enable physics for player container
         self.physics.world.enable(self.playerContainer);
+        self.playerContainer.body.debugBodyColor = 0xadfefe;
         self.physics.add.collider(self.playerContainer, worldLayer, function() {
             self.playerContainer.isColliding = true;
         });
+
+        // create attack hitBoxes
+        this.createPlayerHitboxes(self, self.playerContainer);
 
         const camera = self.cameras.main;
         camera.startFollow(self.playerContainer);
@@ -326,6 +400,17 @@ export default class PlayerManager extends Phaser.Scene {
         // create inventory object
         this.createPlayerInventory(self, playerInfo.inventory, playerInfo.coins);
 
+        // create health bar
+        let healthBar = self.add.dom(0, -28).createFromCache("healthBar")
+            .setDepth(30)
+        let healthBarEl = document.getElementById('health_bar')
+        healthBarEl.style.display = 'none';
+        healthBarEl.id = `health_bar_${client_id}`; // specify health bar id as player id
+        self.playerContainer.add(healthBar);
+
+        // update health
+        this.updateHealth(playerInfo);
+
         // debug coordinates
         if (devMode) {
             this.debugCoordinates(self);
@@ -333,6 +418,14 @@ export default class PlayerManager extends Phaser.Scene {
 
         console.log(`spawned ${playerInfo.name} in ${playerInfo.scene}`)
 
+    }
+
+    createPlayerHitboxes(self, playerContainer) {
+        let hitBox = self.add.rectangle(0, 12, 85, 40)
+        self.physics.world.enable(hitBox);
+        hitBox.body.setImmovable(true);
+        hitBox.body.debugBodyColor = 0xb21d0a;
+        playerContainer.add(hitBox);
     }
 
     createPlayerInventory(self, inventory, coins) {
@@ -343,7 +436,6 @@ export default class PlayerManager extends Phaser.Scene {
     addOtherPlayers(self, playerInfo, worldLayer) {
 
         if (playerInfo.scene !== this.scene) {
-            console.log(playerInfo.scene);
             return;
         }
     
@@ -353,18 +445,21 @@ export default class PlayerManager extends Phaser.Scene {
         // create other player container for sprite and floating name
         const otherPlayerContainer = self.add.container(playerInfo.position.x, playerInfo.position.y)
         otherPlayerContainer.setSize(22, 30);
+        otherPlayerContainer.name = otherPlayerSprite.spriteSheet;
 
         // add other player sprite
         const otherPlayer = self.physics.add
         .sprite(0, -4, otherPlayerSprite.spriteSheet, otherPlayerSprite.front)
-        .setScale(2)
+        .setScale(1);
 
         otherPlayer.playerId = playerInfo.playerId;
 
         // add other player floating name
-        const otherPlayerName = self.add.text(0, -30, `${playerInfo.name}`, {
+        const otherPlayerName = self.add.text(0, -38, `${playerInfo.name}`, {
             font: "14px monospace",
             fill: "#ffffff",
+            stroke: '#000000',
+            strokeThickness: 3
         })
         .setOrigin(0.5)
         .setColor("#ffffff");
@@ -374,9 +469,24 @@ export default class PlayerManager extends Phaser.Scene {
         otherPlayerContainer.add(otherPlayerName);
         otherPlayerContainer.sprite = otherPlayerSprite;
         self.physics.world.enable(otherPlayerContainer);
+        otherPlayerContainer.body.debugBodyColor = 0xadfefe;
     
         // Watch the other player and worldLayer for collisions
         self.physics.add.collider(otherPlayerContainer, worldLayer);
+
+        // create health bar
+        let healthBar = self.add.dom(0, -28).createFromCache("healthBar")
+            .setDepth(30)
+        let healthBarEl = document.getElementById('health_bar')
+        healthBarEl.style.display = 'none';
+        healthBarEl.id = `health_bar_${playerInfo.playerId}`; // specify health bar id as player id
+        otherPlayerContainer.add(healthBar);
+
+        // update health
+        this.updateHealth(playerInfo);
+
+        // listen for other player container colliding with player 1's attacks
+        this.listenPlayerAttacks(self, otherPlayerContainer, otherPlayer, playerInfo.playerId);
 
         // add other player to list of otherplayers
         self.otherPlayers.add(otherPlayerContainer);
@@ -384,67 +494,182 @@ export default class PlayerManager extends Phaser.Scene {
         otherPlayerContainer.position_buffer = [];
     }
 
+    listenPlayerAttacks(self, otherPlayerContainer, otherPlayerSprite, otherPlayerId) {
 
-    // ------------------------------ OLD MOVEMENT LOGIC ---------------------------------------------------
-    /*
-    moveOtherPlayers(self, playerInfo, ticker, scene) {
-
-        if (playerInfo.scene !== scene) {
+        if (!self.allowedActions.attack) {
             return;
         }
 
-        self.otherPlayers.getChildren().forEach(function (otherPlayer) {
-            if (playerInfo.playerId === otherPlayer.first.playerId) {
+        let attackData = {}
+        let attackLogged = false;
+        
+        let hitBox = self.playerContainer.list[2];
 
-                
-
-
-                
-
-
-
-                
-                const prevVelocity = otherPlayer.body.velocity.clone();
-
-                // Stop any previous movement from the last frame
-                otherPlayer.body.setVelocity(0);
-
-                // Update velocity as per server data
-                otherPlayer.body.setVelocityX(playerInfo.velocity.x);
-                otherPlayer.body.setVelocityY(playerInfo.velocity.y);
-
+        // Listen for overlap between this player's hitbox and the otherPlayer's container
+        self.physics.add.overlap(otherPlayerContainer, hitBox, function() {
             
-                // Handle walking animations
-                if (otherPlayer.body.velocity.x < 0) {
-                    otherPlayer.first.anims.play(`${otherPlayer.sprite.spriteNum}-left-walk`, true);
-                } else if (otherPlayer.body.velocity.x > 0) {
-                    otherPlayer.first.anims.play(`${otherPlayer.sprite.spriteNum}-right-walk`, true);
-                } else if (otherPlayer.body.velocity.y < 0) {
-                    otherPlayer.first.anims.play(`${otherPlayer.sprite.spriteNum}-back-walk`, true);
-                } else if (otherPlayer.body.velocity.y > 0) {
-                    otherPlayer.first.anims.play(`${otherPlayer.sprite.spriteNum}-front-walk`, true);
+            // Display health bars for both players
+            document.getElementById(`health_bar_${socket.id}`).style.display = 'block';
+            document.getElementById(`health_bar_${otherPlayerId}`).style.display = 'block';
+            
+            
+            // If player's attack anim hits other player, emit event
+            let playerAnim = self.player.anims.getName()
+            if (playerAnim.includes(self.player.name) && playerAnim.includes('sword')) {
+
+                let attackFrame = self.player.anims.currentFrame.index;
+                if (attackFrame >= 5 && attackFrame < 7) {
+
+                    attackData = {
+                        attackerId: socket.id,
+                        victimId: otherPlayerId,
+                        damage: 5,
+                        attackType: 'sword'
+                    }
+                    
+                    if (!attackLogged) {
+                        // emit event from other player (so that when other player dies emitter is deleted)
+                        otherPlayerContainer.emit('attack', attackData);
+                        //console.log(`You attacked ${otherPlayerContainer.name}`)
+                    }
+                    attackLogged = true;
+                }
+                if (attackFrame >= 7) {
+                    attackLogged = false;
+                }
+            }
+            
+        })
+
+        let that = this;
+        otherPlayerContainer.on('attack', function (attackData) {
+            
+            if (attackData.victimId === otherPlayerId) {
+
+                //that.playerDamageAnim(self, otherPlayerSprite);
+
+                // emit attack to server to validate attack
+                socket.emit('attack', attackData);
+
+            }
+        })
+
+    }
+
+    playerDamageAnim(self, playerSprite) {
+        // display damage as red tint on sprite
+        self.tweens.addCounter({
+            from: 0,
+            to: 3,
+            duration: 400,
+            onUpdate: function (t) {
+                let value = t.getValue();
+
+                if (value < 1) {
+                    playerSprite.setTint(0xff2b2b, 0xff2b2b, 0xff2b2b, 0xff2b2b)
+                }
+                else if (value < 2 && value >= 1) {
+                    playerSprite.clearTint()
                 } else {
-                    otherPlayer.first.anims.stop();
-
-                    // If we were moving, pick and idle frame to use
-                    if (prevVelocity.x < 0) otherPlayer.first.setTexture(otherPlayer.sprite.spriteSheet, otherPlayer.sprite.left);
-                    else if (prevVelocity.x > 0) otherPlayer.first.setTexture(otherPlayer.sprite.spriteSheet, otherPlayer.sprite.right);
-                    else if (prevVelocity.y < 0) otherPlayer.first.setTexture(otherPlayer.sprite.spriteSheet, otherPlayer.sprite.back);
-                    else if (prevVelocity.y > 0) otherPlayer.first.setTexture(otherPlayer.sprite.spriteSheet, otherPlayer.sprite.front);
+                    playerSprite.setTint(0xff2b2b, 0xff2b2b, 0xff2b2b, 0xff2b2b)
                 }
+            },
+            onComplete: function() {
+                playerSprite.clearTint()
+            }
+        });
+    }
 
-                if (ticker === 'ticker') {
-                    // Update position as per server data
-                    otherPlayer.setPosition(playerInfo.position.x + 11, playerInfo.position.y + 15)
-                    //self.interpolatePositions(playerInfo.position, otherPlayer)
-                }
-                
+    updateHealth(playerState, display) {
+
+        let healthBar = document.getElementById(`health_bar_${playerState.playerId}`);
+
+        let healthPercent = String(playerState.health / playerState.maxHealth * 100);
+        
+        if (healthPercent >= 50) {
+            healthBar.children[0].style.backgroundColor = '#03ad00';
+        } else if (healthPercent < 50 && healthPercent > 25) {
+            healthBar.children[0].style.backgroundColor = 'orange';
+        } else {
+            healthBar.children[0].style.backgroundColor = 'red';
+        }
+        
+        healthPercent = healthPercent + '%'
+        healthBar.children[0].style.width = healthPercent;
+
+        if (display) {
+            healthBar.style.display = 'block';
+        }
+
+    }
+
+    handleDamage(self, playerState) {
+
+        this.updateHealth(playerState, true)
+
+        // get player sprite
+        let playerSprite
+        if (playerState.playerId === socket.id) {
+            playerSprite = self.player;
+        } else {
+            // get other player sprite
+            for (let p of self.otherPlayers.getChildren()) {
+                if (playerState.playerId === p.list[0].playerId )
+                    playerSprite = p.list[0];
+            }
+            
+        }
+
+        // play damage anim
+        this.playerDamageAnim(self, playerSprite);
+
+        if (playerState.isDead && playerState.playerId === socket.id) {
+            // pause player position
+            self.playerContainer.body.moves = false;
+            const screenCenterX = self.cameras.main.worldView.x + self.cameras.main.width / 2;
+            const screenCenterY = self.cameras.main.worldView.y + self.cameras.main.height / 2;
+
+            // hide UI elements
+            document.getElementById('inventory_button').style.display = 'none';
+            document.getElementById('inventory_container').style.display = 'none';
+            document.getElementById('chatBox').style.display = 'none';
+            document.getElementById(`health_bar_${playerState.playerId}`).style.visibility = 'hidden';
+            for (let p of self.otherPlayers.getChildren()) {
+                document.getElementById(`health_bar_${p.list[0].playerId}`).style.visibility = 'hidden';
             }
 
-        })
-    }
-    */
+            // fade out & turn off sockets
+            self.cameras.main.fadeOut(2000);
+            socket.off();
 
+            // Show 'Game Over' text
+            setTimeout(function(){ 
+                self.cameras.main.fadeIn(100);
+                self.add.rectangle(screenCenterX, screenCenterY, self.cameras.main.width, self.cameras.main.height, 0x000000)
+                .setDepth(50);
+                self.add.text(screenCenterX, screenCenterY, 'Game Over', {
+                    align: 'center',
+                    fontSize: 40,
+                    fill: 'red'
+                })
+                .setOrigin(0.5, 0.5)
+                .setDepth(55);
+
+                // change scene
+                setTimeout(function(){ 
+                    let scenes = {
+                        new: 'SceneMainBuilding'
+                    }
+        
+                    self.scene.start(scenes.new, self);
+                    self.anims.resumeAll();
+                    socket.emit("sceneChange", scenes);
+                }, 2000);
+
+            }, 2000);
+            
+        }
+    }
 
     changeScene (self, player, scene) {
 

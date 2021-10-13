@@ -70,6 +70,31 @@ export default class WorldController {
         this.io.sockets.in(this.roomName).emit('newPlayer', player.state);
         console.log(`${client_io.name} has joined ${this.roomName}`);
         player.state.init = false;
+
+        // listen for player attacks
+        client_io.on("attack", attackData => {
+            this.handleAttacks(attackData);
+        })
+    }
+
+
+    handleAttacks(attackData) {
+        for (let p of this.players) {
+            if (attackData.victimId === p.playerId) {
+                p.health -= attackData.damage;
+                console.log(`${p.name} took ${attackData.damage} damage`);
+
+                // if player is dead, remove player
+                if (p.health <1) {
+                    console.log(`${p.name} died`)
+                    p.isDead = true;
+                }
+
+                // emit to all players that the player was damaged
+                this.io.sockets.in(this.roomName).emit('playerDamaged', p);
+
+            }
+        }
     }
 
     

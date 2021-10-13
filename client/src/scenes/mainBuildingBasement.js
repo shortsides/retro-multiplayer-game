@@ -3,11 +3,9 @@ import { socket } from "../../index.js";
 import { playerSprite } from "../../index.js";
 
 import PlayerManager from "../player_manager.js";
-import Anims from "../anim_manager.js";
 import Cursors from "../cursors.js";
 import ChatManager from "../chat_manager.js";
 import NPC from "../NPC.js";
-import InventoryManager from "../Inventory.js";
 
 export default class SceneMainBuildingBasement extends Phaser.Scene {
 
@@ -20,6 +18,10 @@ export default class SceneMainBuildingBasement extends Phaser.Scene {
         this.stoppedLog = true;
         this.otherPlayers;
         this.dialogueActive = false;
+        this.allowedActions = {
+            move: true,
+            attack: false,
+        }
     }
 
     preload() {
@@ -76,20 +78,36 @@ export default class SceneMainBuildingBasement extends Phaser.Scene {
         // Turn off camera initially until player info is loaded from server
         this.cameras.main.visible = false;
     
-        // When this player joins, spawn all current players in room
-        socket.on('currentPlayers', function (players) {
-            self.otherPlayers = self.physics.add.group();
+
+
+        async function spawnThisPlayer (players) {
             Object.keys(players).forEach(function (id) {
                 if (players[id].playerId === socket.id) {
                     self.playerManager.addPlayer(self, players[id], worldLayer, map);
-
                     self.afterPlayerSpawn();
-
-                } else {
-                    self.playerManager.addOtherPlayers(self, players[id], worldLayer, scene);
+                    console.log('this player spawned');
                 }
             });
-        });
+            return;
+        }
+
+        async function spawnAllPlayers (players) {
+            // First spawn this player
+            await spawnThisPlayer(players);
+
+            // Then spawn other players
+            self.otherPlayers = self.physics.add.group();
+            Object.keys(players).forEach(function (id) {
+                if (players[id].playerId !== socket.id) {
+                    self.playerManager.addOtherPlayers(self, players[id], worldLayer);;
+                }
+            });
+            console.log('all players spawned');
+        }
+
+        // When this player joins, spawn all current players in room
+        socket.on('currentPlayers', spawnAllPlayers);
+
         
         // When a new player joins, spawn them
         socket.on('newPlayer', function (playerInfo) {
@@ -114,6 +132,10 @@ export default class SceneMainBuildingBasement extends Phaser.Scene {
         socket.on('playerMoved', message => {
             self.playerManager.messages.push(message);
         });
+
+        socket.on('playerDamaged', playerState => {
+            self.playerManager.handleDamage(self, playerState);
+        })
 
         // remove players who leave the scene
         socket.on('playerChangedScene', function (player) {
@@ -148,8 +170,7 @@ export default class SceneMainBuildingBasement extends Phaser.Scene {
             return;
         }
 
-        // ------------------------------ NEW PLAYER-SERVER MOVEMENT LOGIC ------------------------------
-        const prevVelocity = this.playerContainer.body.velocity.clone();
+        // ------------------------------ PLAYER-SERVER MOVEMENT LOGIC ------------------------------
 
         if (!this.playerContainer.isColliding) {
             // Listen to the server.
@@ -162,7 +183,7 @@ export default class SceneMainBuildingBasement extends Phaser.Scene {
             this.playerManager.interpolateEntities(this.otherPlayers);
 
             // Play movement animations
-            this.playerManager.playWalkingAnims(this, prevVelocity);
+            this.playerManager.playerAnims(this);
         }
 
         this.playerContainer.isColliding = false;
@@ -238,6 +259,40 @@ export default class SceneMainBuildingBasement extends Phaser.Scene {
                 this.dialogueActive = true;
                 
             });
+        });
+        
+
+        // Unpause player actions after action completes e.g. after attacking
+        this.player.on('animationcomplete', function (anim, frame) {
+            this.emit('animationcomplete_' + anim.key, anim, frame);
+        }, this.player);
+
+        this.player.on(`animationcomplete_${playerSprite.spriteSheet}-left-sword`, function () {
+            self.playerManager.allowSendInputs = true;
+            self.playerManager.currentAction = null;
+            self.allowedActions.move = true;
+            self.allowedActions.attack = true;
+        });
+
+        this.player.on(`animationcomplete_${playerSprite.spriteSheet}-right-sword`, function () {
+            self.playerManager.allowSendInputs = true;
+            self.playerManager.currentAction = null;
+            self.allowedActions.move = true;
+            self.allowedActions.attack = true;
+        });
+
+        this.player.on(`animationcomplete_${playerSprite.spriteSheet}-back-sword`, function () {
+            self.playerManager.allowSendInputs = true;
+            self.playerManager.currentAction = null;
+            self.allowedActions.move = true;
+            self.allowedActions.attack = true;
+        });
+
+        this.player.on(`animationcomplete_${playerSprite.spriteSheet}-front-sword`, function () {
+            self.playerManager.allowSendInputs = true;
+            self.playerManager.currentAction = null;
+            self.allowedActions.move = true;
+            self.allowedActions.attack = true;
         });
         
     }

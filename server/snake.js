@@ -249,7 +249,7 @@ export default class SnakeGame {
                                     continue;
                                 }
                                 if (!otherPlayer.isAlive) {
-                                    break;
+                                    continue;
                                 }
                                 if (otherPlayer.pos.x === cell.x && otherPlayer.pos.y === cell.y) {
                                     // then player 2 loses a life

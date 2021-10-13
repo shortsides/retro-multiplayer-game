@@ -25,6 +25,11 @@ html, body {
   color: white;
 }
 
+#releaseNotes {
+  color: white;
+  margin-top: 100px;
+}
+
 
 #initialScreenMessage {
   color: white;

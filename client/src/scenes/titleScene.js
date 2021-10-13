@@ -1,4 +1,4 @@
-import { SPRITES } from "../../index.js";
+import { CHARSPRITES, SPRITES } from "../../index.js";
 import { socket } from "../../index.js";
 
 import PlayerManager from "../player_manager.js";
@@ -33,22 +33,42 @@ export default class TitleScene extends Phaser.Scene {
         // load inventory
         this.load.html("inventory", "../../inventory_ui.html");
 
+        // load health bar
+        this.load.html("healthBar", "../../health_bar.html");
+
         // load minigames
         this.load.html("snakeGame", "src/scenes/minigames/snake.html");
 
         // load spritesheets
-        this.load.spritesheet(SPRITES[0].spriteSheet, SPRITES[0].spriteSheetPath, 
+        this.load.spritesheet(SPRITES[1].spriteSheet, SPRITES[1].spriteSheetPath, 
         { frameWidth: 16, frameHeight: 20 });
         this.load.spritesheet(SPRITES[4].spriteSheet, SPRITES[4].spriteSheetPath, 
         { frameWidth: 16, frameHeight: 20 });
         this.load.spritesheet(SPRITES[8].spriteSheet, SPRITES[8].spriteSheetPath, 
         { frameWidth: 16, frameHeight: 20 });
+
         this.load.spritesheet("plane", "../../assets/sprites/plane.png", 
         { frameWidth: 110, frameHeight: 96 });
         this.load.spritesheet("propeller", "../../assets/sprites/propeller.png", 
         { frameWidth: 32, frameHeight: 32 });
         this.load.spritesheet("snake-arcade", "../../assets/sprites/arcade_snake.png", 
         { frameWidth: 40, frameHeight: 60 });
+        this.load.spritesheet("midora-sword", "../../assets/sprites/midora_sword.png", 
+        { frameWidth: 96, frameHeight: 80 });
+        this.load.spritesheet("midora-sword-short", "../../assets/sprites/midora_sword_anim_short_v3.png", 
+        { frameWidth: 96, frameHeight: 80 });
+
+        // MY CHARACTERS
+        this.load.spritesheet(CHARSPRITES[0].spriteSheet, `${CHARSPRITES[0].spriteSheetPath}.png`,
+        { frameWidth: 48, frameHeight: 48 });
+        this.load.spritesheet(`${CHARSPRITES[0].spriteSheet}-sword`, `${CHARSPRITES[0].spriteSheetPath}_sword.png`,
+        { frameWidth: 96, frameHeight: 80 });
+        
+        this.load.spritesheet(CHARSPRITES[1].spriteSheet, `${CHARSPRITES[1].spriteSheetPath}.png`,
+        { frameWidth: 48, frameHeight: 48 });
+        this.load.spritesheet(`${CHARSPRITES[1].spriteSheet}-sword`, `${CHARSPRITES[1].spriteSheetPath}_sword.png`,
+        { frameWidth: 96, frameHeight: 80 });
+
 
         // environment animations
         this.load.spritesheet("fire", "../../assets/sprites/fire.png", { frameWidth: 16, frameHeight: 20 });

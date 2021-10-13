@@ -35,6 +35,35 @@ export let client_id;
 export let playerSprite;
 
 export const FRAME_RATE = 10;
+export const CHARSPRITES = [
+    {
+        spriteNum: 0,
+        spriteSheet: 'char01',
+        spriteSheetPath: 'assets/sprites/Char01_spritesheet',
+        front: 12,
+        left: 6,
+        right: 0,
+        back: 18,
+        attack_sword_front: 18,
+        attack_sword_left: 9,
+        attack_sword_right: 0,
+        attack_sword_back: 27
+    },
+    {
+        spriteNum: 1,
+        spriteSheet: 'char02',
+        spriteSheetPath: 'assets/sprites/Char02_spritesheet',
+        front: 12,
+        left: 6,
+        right: 0,
+        back: 18,
+        attack_sword_front: 18,
+        attack_sword_left: 9,
+        attack_sword_right: 0,
+        attack_sword_back: 27
+    },
+]
+
 export const SPRITES = [
     {
         spriteNum: 0,
@@ -205,6 +234,7 @@ function initGame(id) {
 }
 
 // select a sprite for player based on hash of their username
+/*
 export function getUserSprite (username) {
     // Compute hash code
     let hash = 7;
@@ -214,5 +244,18 @@ export function getUserSprite (username) {
     // Calculate sprite number
     const index = Math.abs(hash % SPRITES.length);
     return SPRITES[index];
+}
+
+*/
+// select a sprite for player based on hash of their username
+export function getUserSprite (username) {
+    // Compute hash code
+    let hash = 7;
+    for (let i = 0; i < username.length; i++) {
+      hash = username.charCodeAt(i) + (hash << 5) - hash;
+    }
+    // Calculate sprite number
+    const index = Math.abs(hash % CHARSPRITES.length);
+    return CHARSPRITES[index];
 }
 

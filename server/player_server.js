@@ -10,37 +10,27 @@ export default class PlayerController {
         
         this.setupSockets();
 
-        // NEW
         this.setUpdateRate(10);
         this.last_processed_input = [];
         this.messages = [];
-        this.speed = 170;
+        this.speed = 140;
         this.lag_ms = 0;
 
-        // OLD
-        //this.setUpdateRate(0.25);
     }
 
 
     setupSockets() {
 
-        // NEW MOVEMENT LOGIC
         this.client_io.on("playerMoved", input => {
 
             this.messages.push({
                 recv_ts: +new Date() + input.lag_ms,
                 payload: input
             });
-
+            // Simulate server lag for testing
             this.lag_ms = input.lag_ms;
 
         })
-
-        // OLD MOVEMENT LOGIC
-        this.client_io.on("playerMovement", movementData => {
-            this.movePlayer(movementData);
-        });
-        // ---------------------------------------------------
 
         this.client_io.on("sceneChange", scenes => {
             this.changeScene(scenes);
@@ -57,10 +47,16 @@ export default class PlayerController {
         this.client_io.on("updateCoins", coins => {
             this.updateCoins(coins);
         })
+
+        /*
+        this.client_io.on("attack", attackData => {
+            this.handleAttack(attackData);
+        })
+        */
     }
 
 
-    // ------------------------------ NEW PLAYER-SERVER MOVEMENT LOGIC ------------------------------
+    // ------------------------------ PLAYER-SERVER MOVEMENT LOGIC ------------------------------
 
     setUpdateRate(hz) {
         this.update_rate = hz;
@@ -109,26 +105,46 @@ export default class PlayerController {
 
     applyInput (input) {
 
+
+        // Apply movement
         if (input.action === 'move_right') {
-            this.state.position.x += input.press_time*this.speed;
+            //this.state.position.x += input.press_time*this.speed;
+            this.state.position.x = input.position.x + 11;
             this.state.velocity.x = this.speed;
-            this.state.sprite = 'right';
+            this.state.direction = 'right';
+            this.state.action = null;
         } else if (input.action === 'move_left') {
-            this.state.position.x += -input.press_time*this.speed;
+            //this.state.position.x += -input.press_time*this.speed;
+            this.state.position.x = input.position.x + 11;
             this.state.velocity.x = -this.speed;
-            this.state.sprite = 'left';
+            this.state.direction = 'left';
+            this.state.action = null;
         } else if (input.action === 'move_up') {
-            this.state.position.y += -input.press_time*this.speed;
+            //this.state.position.y += -input.press_time*this.speed;
+            this.state.position.y = input.position.y + 15;
             this.state.velocity.y = -this.speed;
-            this.state.sprite = 'back';
+            this.state.direction = 'back';
+            this.state.action = null;
         } else if (input.action === 'move_down') {
-            this.state.position.y += input.press_time*this.speed;
+            //this.state.position.y += input.press_time*this.speed;
+            this.state.position.y = input.position.y + 15;
             this.state.velocity.y = this.speed;
-            this.state.sprite = 'front';
+            this.state.direction = 'front';
+            this.state.action = null;
         } else if (input.action === 'stop') {
             this.state.velocity.x = 0;
             this.state.velocity.y = 0;
-        } else {
+            this.state.action = null;
+        }
+        // Apply actions
+        else if (input.action === 'attack') {
+            this.state.action = 'attack';
+            this.state.velocity.x = 0;
+            this.state.velocity.y = 0;
+            return;
+        }
+        else {
+            this.state.action = null;
             return;
         }
     }
@@ -139,7 +155,8 @@ export default class PlayerController {
             entity_id: this.state.playerId,
             position: this.state.position,
             velocity: this.state.velocity,
-            sprite: this.state.sprite,
+            direction: this.state.direction,
+            action: this.state.action,
             last_processed_input: this.last_processed_input
         });
         
@@ -161,33 +178,6 @@ export default class PlayerController {
             }
         }
     }
-
-
-    // ------------------------------ OLD MOVEMENT LOGIC ---------------------------------------------------
-    /*
-    movePlayer(movementData) {
-        this.state.velocity = movementData.velocity;
-        this.state.position = movementData.position;
-        // emit new player state to all players
-        this.world.io.sockets.in(this.world.roomName).emit('otherPlayerMoved', this.state);
-    }
-
-    setUpdateRate(hz) {
-        this.update_rate = hz;
-      
-        clearInterval(this.update_interval);
-
-        let self = this;
-        this.update_interval = setInterval(() => {
-            self.sendPlayerState();
-        }, 1000 / this.update_rate);
-    }
-
-    sendPlayerState() {
-        // Broadcast the player state to all the clients.
-        this.world.io.sockets.in(this.world.roomName).emit('otherPlayerMoved', this.state, 'ticker');
-    }
-    */
 
 
     changeScene(scenes) {
@@ -213,10 +203,17 @@ export default class PlayerController {
             }
         }
 
+        // check if player is dead i.e. respawning & reset health
+        if (this.state.isDead) {
+            this.state.isDead = false;
+            this.state.health = this.state.maxHealth;
+        }
+
         console.log(`${this.client_io.name} is moving to ${scenes.new}`)
         
         this.state.velocity = {}; // reset velocity
         this.state.position = newPos; // update player position for new scene
+        this.state.direction = 'front'; // reset direction
 
         // emit to all players that the player moved
         this.world.io.sockets.in(this.world.roomName).emit('playerChangedScene', this.state);
@@ -255,6 +252,19 @@ export default class PlayerController {
         this.state.coins += coins;
     }
 
+    handleAttack(attackData) {
+        this.state.health -= attackData.damage;
+        console.log(`${this.client_io.name} took ${attackData.damage} damage`);
+
+        if (this.state.health <1) {
+            console.log(`${this.client_io.name} died`)
+            this.state.isDead = true;
+        }
+
+        // emit to all players that the player was damaged
+        this.world.io.sockets.in(this.world.roomName).emit('playerDamaged', this.state);
+    }
+
     // create player's empty inventory slots
     createInventorySlots(inventorySize) {
         let inventory = [];
@@ -284,7 +294,11 @@ export default class PlayerController {
                 x: 480,
                 y: 625
             },
-            sprite: 'front',
+            direction: 'front',
+            action: null,
+            isDead: false,
+            health: 25,
+            maxHealth: 25,
             inventory: this.createInventorySlots(20),
             coins: 0
         }

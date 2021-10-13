@@ -2,11 +2,12 @@ import { socket } from "../index.js";
 
 export default class ChatManager extends Phaser.Scene {
 
-    constructor() {
-        super();
+    constructor(self) {
+        super(self);
 
         this.chatArea = document.getElementById('messages');
         this.chatMessages = [];
+        this.setChatActiveFalse(self);
 
         // add new chat messages to chat UI
         socket.on("message", (message) => {
@@ -19,6 +20,10 @@ export default class ChatManager extends Phaser.Scene {
             this.chatArea.appendChild(el);
             this.chatArea.scrollTop = this.chatArea.scrollHeight;
         });
+    }
+
+    setChatActiveFalse(self) {
+        self.chatActive = false;
     }
 
     reloadMessages(self, messages) {

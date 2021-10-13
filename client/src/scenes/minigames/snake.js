@@ -16,9 +16,6 @@ export default class MiniGameSnake extends Phaser.Scene {
 
         let self = this;
 
-        const screenCenterX = this.cameras.main.worldView.x + this.cameras.main.width / 2;
-        const screenCenterY = this.cameras.main.worldView.y + this.cameras.main.height / 2;
-
         function exitGame() {
             // change scene
             socket.off();
