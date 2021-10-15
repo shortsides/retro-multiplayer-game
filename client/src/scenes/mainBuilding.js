@@ -23,6 +23,7 @@ export default class SceneMainBuilding extends Phaser.Scene {
             move: true,
             attack: false,
         }
+        this.tutorial = false;
     }
 
     preload() {
@@ -90,6 +91,9 @@ export default class SceneMainBuilding extends Phaser.Scene {
                 if (players[id].playerId === socket.id) {
                     self.playerManager.addPlayer(self, players[id], worldLayer, map);
                     self.afterPlayerSpawn();
+                    if (players[id].tutorial) {
+                        self.tutorial = true;
+                    }
                     console.log('this player spawned');
                 }
             });
@@ -156,6 +160,7 @@ export default class SceneMainBuilding extends Phaser.Scene {
 
         // Create innkeeper NPC
         this.innkeeper = new NPC(this, innkeeperConfig);
+        this.innkeeper.setScale(2);
 
         // Create NPC dialogue UI
         this.innkeeper.createDialogueUI();
@@ -212,8 +217,16 @@ export default class SceneMainBuilding extends Phaser.Scene {
             // change scene
             socket.off();
 
-            let scenes = {
-                new: 'SceneWorld'
+            // check if player is still in tutorial or not
+            let scenes;
+            if (this.tutorial) {
+                scenes = {
+                    new: 'SceneWorldTutorial'
+                }
+            } else {
+                scenes = {
+                    new: 'SceneWorld'
+                }
             }
 
             this.scene.start(scenes.new, this);

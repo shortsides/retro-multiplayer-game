@@ -82,6 +82,7 @@ export default class InventoryManager extends Phaser.Scene {
         }
 
         removeItem(slotNum) {
+            
             // remove item from inventory list
             for (let i of this.items) {
                 if (i.available) {
@@ -90,6 +91,7 @@ export default class InventoryManager extends Phaser.Scene {
                 if (i.slot === slotNum) {
                     i.available = true;
                     delete i.props;
+                    console.log(`removed ${i.name} from inventory`);
 
                     // remove displayed DOM elements
                     let item = document.getElementById(`${'slot' + i.slot}`);
@@ -101,7 +103,19 @@ export default class InventoryManager extends Phaser.Scene {
 
             // send inventory update to server
             this.sendInventory();
+        }
 
+        // Checks if specified item name is in player's inventory
+        checkItem(itemName) {
+            for (let i of this.items) {
+                if (i.available) {
+                    continue;
+                }
+                if (i.props.name === itemName) {
+                    return i.slot;
+                }
+            }
+            return false;
         }
 
         displayCoins() {
@@ -127,4 +141,4 @@ export default class InventoryManager extends Phaser.Scene {
         }
 
 
-}
+} 

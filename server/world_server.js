@@ -41,7 +41,21 @@ export const SCENES = [
         position: {
             x: 1167,
             y: 625
-        }
+        },
+        altEntrances: [
+            {
+                from: 'SceneWorldTutorial',
+                x: 975,
+                y: 625
+            }
+        ]
+    },
+    {
+        name: 'SceneWorldTutorial',
+        position: {
+            x: 1167,
+            y: 625
+        },
     }
 ]
 
@@ -80,6 +94,7 @@ export default class WorldController {
 
     handleAttacks(attackData) {
         for (let p of this.players) {
+
             if (attackData.victimId === p.playerId) {
                 p.health -= attackData.damage;
                 console.log(`${p.name} took ${attackData.damage} damage`);

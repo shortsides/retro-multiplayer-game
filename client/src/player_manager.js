@@ -496,10 +496,6 @@ export default class PlayerManager extends Phaser.Scene {
 
     listenPlayerAttacks(self, otherPlayerContainer, otherPlayerSprite, otherPlayerId) {
 
-        if (!self.allowedActions.attack) {
-            return;
-        }
-
         let attackData = {}
         let attackLogged = false;
         

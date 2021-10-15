@@ -2,21 +2,22 @@ import TitleScene from "./src/scenes/titleScene.js";
 import SceneMainBuilding from "./src/scenes/mainBuilding.js";
 import SceneMainBuildingBasement from "./src/scenes/mainBuildingBasement.js";
 import SceneWorld from "./src/scenes/World.js";
+import SceneWorldTutorial from "./src/scenes/WorldTutorial.js";
 import MiniGameSnake from "./src/scenes/minigames/snake.js";
 
 // production server config
-
+/*
 export const socket = io("https://agile-meadow-49870.herokuapp.com/", {
   withCredentials: true,
 });
-
+*/
 
 // local testing config
-//export const socket = io('http://localhost:3000/');
+export const socket = io('http://localhost:3000/');
 
 // global developer mode toggle for debugging tools
-export const devMode = false;
-export const lag_ms = 0;
+export const devMode = true;
+export const lag_ms = 250;
 
 socket.on('loginSuccess', initGame);
 socket.on('nameTaken', handleNameTaken);
@@ -189,6 +190,7 @@ let titleScene = new TitleScene();
 let sceneMainBuilding = new SceneMainBuilding();
 let sceneMainBuildingBasement = new SceneMainBuildingBasement();
 let sceneWorld = new SceneWorld();
+let sceneWorldTutorial = new SceneWorldTutorial();
 
 // create minigames
 let miniGameSnake = new MiniGameSnake();
@@ -224,6 +226,7 @@ function initGame(id) {
     game.scene.add('SceneMainBuilding', sceneMainBuilding);
     game.scene.add('SceneMainBuildingBasement', sceneMainBuildingBasement);
     game.scene.add('SceneWorld', sceneWorld);
+    game.scene.add('SceneWorldTutorial', sceneWorldTutorial);
     game.scene.add('MiniGameSnake', miniGameSnake);
 
     // start title scene

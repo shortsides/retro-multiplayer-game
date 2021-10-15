@@ -2,34 +2,40 @@
 export default class NPC extends Phaser.GameObjects.Sprite {
 
     constructor(scene, config) {
-        super(scene, config.x, config.y, config.key);
+        super(scene, config.x, config.y);
         scene.physics.world.enable(this);
         scene.add.existing(this);
         
+        this.body.setImmovable();
+        this.body.setSize(config.width, config.height);
+        this.setOrigin(0.5,0.5)
         this.setTexture(config.spritesheet, config.spritenum);
-        this.setScale(2);
     
         this.dialogue = config.dialogue;
         this.scene = scene;
+        this.blurb = null;
+        this.lineIndex = 0;
+        this.allowUserInput = false;
       }
 
     readDialogue (key) {
 
-        this.scene.allowUserInput = false;
+        this.allowUserInput = false;
 
         // Read through dialogs in order, until stop property is detected
-        this.scene.blurb = this.dialogue[key];
-        this.showSubtitle(this.scene.blurb);
+        this.blurb = this.dialogue[key];
+        this.showSubtitle();
 
     }
 
     showSubtitle() {
+
         // make dialogue UI elements visible
         this.scene.subtitle.setAlpha(1)
         this.scene.subtitleBox.setAlpha(1)
         this.scene.subtitleArrow.setAlpha(1)
-        const line = this.scene.blurb.say[this.scene.lineIndex];
-        this.scene.subtitle.setText(this.typewriteTextWrapped(line, this.scene.blurb));
+        const line = this.blurb.say[this.lineIndex];
+        this.scene.subtitle.setText(this.typewriteTextWrapped(line));
 
     }
 
@@ -37,7 +43,7 @@ export default class NPC extends Phaser.GameObjects.Sprite {
         const lines = this.scene.subtitle.getWrappedText(text)
         const wrappedText = lines.join('\n')
     
-        this.typewriteText(wrappedText, this.scene.blurb)
+        this.typewriteText(wrappedText)
     }
 
     typewriteText(text) {
@@ -48,7 +54,7 @@ export default class NPC extends Phaser.GameObjects.Sprite {
                 this.scene.subtitle.text += text[i]
                 ++i
                 if (i > (length - 1) ) {
-                    this.userInput(this.scene.blurb); // called after text is all written
+                    this.userInput(); // called after text is all written
                 }
             },
             repeat: length - 1,
@@ -58,41 +64,58 @@ export default class NPC extends Phaser.GameObjects.Sprite {
 
     userInput() {
 
-        this.scene.allowUserInput = true;
+        this.allowUserInput = true;
+
+        if (this.blurb === null) {
+            return;
+        }
 
         // if text was a question, show user answers
-        if (this.scene.blurb.question) {
-            this.showAnswers(this.scene.blurb);
+        if (this.blurb.question) {
+            this.showAnswers(this.blurb);
         }
 
         // when user presses space...
-        this.scene.cursors.space.on("down", () => {
+        this.keySpace = this.scene.cursors.space.on("down", () => {
             
             if (!this.scene.dialogueActive) {
                 return;
             }
-            if (!this.scene.allowUserInput) {
+            if (!this.allowUserInput) {
                 return;
             }
-            this.scene.allowUserInput = false;
+            this.allowUserInput = false;
 
             // if not a question, iterate to next line in blurb until no lines left
-            if (!this.scene.blurb.question) {
-                this.scene.lineIndex++;
+            if (!this.blurb.question) {
+                this.lineIndex++;
                 // if there are no lines left, go to next branch of tree
-                if (this.scene.lineIndex >= this.scene.blurb.say.length) {
-                    if (this.scene.blurb.linkTo !== false) {
-                        this.scene.lineIndex = 0;
-                        this.readDialogue(this.scene.blurb.linkTo)
+                if (this.lineIndex >= this.blurb.say.length) {
+                    if (this.blurb.linkTo !== false) {
+                        this.lineIndex = 0;
+                        this.readDialogue(this.blurb.linkTo)
+                        // if a function is defined, perform function
+                        if (typeof this.blurb.function !== "undefined") {
+                            this.convoAction(this.blurb.function);
+                        }
                         return;
                     } else {
-                        this.exitDialogue();
+                        // if a function is defined, perform function
+                        if (typeof this.blurb.function !== "undefined") {
+                            this.convoAction(this.blurb.function);
+                        } else {
+                            this.exitDialogue();
+                            let self = this;
+                            setTimeout(function () {
+                                self.scene.dialogueActive = false;
+                            }, 200);
+                        }
                         return;
                     }
                     
                 }
                 // else, show next line
-                this.showSubtitle(this.scene.blurb);
+                this.showSubtitle(this.blurb);
                 return;
             }
             
@@ -107,14 +130,14 @@ export default class NPC extends Phaser.GameObjects.Sprite {
             if (this.scene.subtitleBoxYes.selected) {
 
                 // if a function is defined, perform function when player selects first answer
-                if (typeof this.scene.blurb.answers[0].function !== "undefined") {
-                    this.convoAction(this.scene.blurb.answers[0].function);
+                if (typeof this.blurb.answers[0].function !== "undefined") {
+                    this.convoAction(this.blurb.answers[0].function);
                 }
 
-                this.readDialogue(this.scene.blurb.answers[0].linkTo)
+                this.readDialogue(this.blurb.answers[0].linkTo)
 
             } else {
-                this.readDialogue(this.scene.blurb.answers[1].linkTo)
+                this.readDialogue(this.blurb.answers[1].linkTo)
             }
             
         });
@@ -136,11 +159,11 @@ export default class NPC extends Phaser.GameObjects.Sprite {
         this.scene.subtitleBoxNo.setStrokeStyle(4, 0xefc53f);
         this.scene.subtitleBoxNo.isStroked = false;
 
-        let keyDown = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
-        let keyUp = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP)
-        keyDown.on("down", () => {
+        this.keyDown = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
+        this.keyUp = this.scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP)
+        this.keyDown.on("down", () => {
 
-            if (Phaser.Input.Keyboard.JustDown(keyDown)) { // prevents duplication of keydown event
+            if (Phaser.Input.Keyboard.JustDown(this.keyDown)) { // prevents duplication of keydown event
 
                 if (!this.scene.dialogueActive) {
                     return;
@@ -149,9 +172,9 @@ export default class NPC extends Phaser.GameObjects.Sprite {
 
             }
         });
-        keyUp.on("down", () => {
+        this.keyUp.on("down", () => {
 
-            if (Phaser.Input.Keyboard.JustDown(keyUp)) {
+            if (Phaser.Input.Keyboard.JustDown(this.keyUp)) {
 
                 if (!this.scene.dialogueActive) {
                     return;
@@ -178,8 +201,6 @@ export default class NPC extends Phaser.GameObjects.Sprite {
         this.scene.subtitle = this.scene.add.text(0, 0, '(subtitle)', {
             fontFamily: 'monospace',
             color: '#000',
-            //stroke: '#000',
-            //strokeThickness: 3,
             align: 'left',
             padding: 20,
             opacity: 0,
@@ -193,7 +214,7 @@ export default class NPC extends Phaser.GameObjects.Sprite {
         .setDepth(40)
         .setAlpha(0)
         this.scene.subtitle.setPosition(110, 442 + this.scene.subtitle.displayHeight);
-        this.scene.lineIndex = 0;
+        this.lineIndex = 0;
 
         // create background box and next arrow
         this.scene.subtitleBox = this.scene.add.rectangle(this.scene.cameras.main.width / 2, 590, this.scene.cameras.main.width - 200, 90, 0xf4edf7)
@@ -246,7 +267,7 @@ export default class NPC extends Phaser.GameObjects.Sprite {
         .setAlpha(0)
     }
 
-    exitDialogue() {
+    async exitDialogue() {
         console.log('exit dialogue');
         // hide answer boxes
         this.scene.subtitleBoxYes.setAlpha(0);
@@ -257,18 +278,27 @@ export default class NPC extends Phaser.GameObjects.Sprite {
         this.scene.subtitleBox.setAlpha(0);
         this.scene.subtitleArrow.setAlpha(0);
 
-        this.scene.lineIndex = 0;
-        this.scene.allowUserInput = false;
+        this.blurb = null;
+        this.lineIndex = 0;
+        this.allowUserInput = false;
 
-        let self = this;
-        setTimeout(function () {
-            self.scene.dialogueActive = false;
-        }, 200);
+        this.keySpace.destroy();
+        if (typeof this.keyDown !== 'undefined') {
+            this.keyDown.destroy();
+            this.keyUp.destroy();
+        }
+        
     }
 
     convoAction(action) {
         if (action.type === "pickUp") {
             this.pickUpItem(action.props);
+        }
+        if (action.type === "giveItem") {
+            this.giveItem(action.props);
+        }
+        if (action.type === "callbackScene") {
+            this.callbackScene(action.props.callback);
         }
     }
 
@@ -277,6 +307,17 @@ export default class NPC extends Phaser.GameObjects.Sprite {
         
         // Add item to inventory
         this.scene.inventory.addItem(item);
+    }
+
+    giveItem(item) {
+        // Remove item from inventory
+        let itemSlot = this.scene.inventory.checkItem(item.name);
+        this.scene.inventory.removeItem(itemSlot);
+    }
+
+    async callbackScene(callback) {
+        await this.exitDialogue();
+        this.scene.sceneCallbacks(callback);
     }
 
 }

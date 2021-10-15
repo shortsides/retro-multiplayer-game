@@ -8,10 +8,10 @@ import ChatManager from "../chat_manager.js";
 import NPC from "../NPC.js";
 import { pilotConfig, propellerConfig } from "../NPC_char.js";
 
-export default class SceneWorld extends Phaser.Scene {
+export default class SceneWorldTutorial extends Phaser.Scene {
 
     constructor() {
-        super('SceneWorld');
+        super('SceneWorldTutorial');
     }
 
     init() {
@@ -21,7 +21,7 @@ export default class SceneWorld extends Phaser.Scene {
         this.dialogueActive = false;
         this.allowedActions = {
             move: true,
-            attack: true,
+            attack: false, // false until sword is equipped
         }
     }
 
@@ -31,7 +31,7 @@ export default class SceneWorld extends Phaser.Scene {
 
     create() {
 
-        const scene = 'SceneWorld';
+        const scene = 'SceneWorldTutorial';
 
         let self = this;
     
@@ -45,6 +45,33 @@ export default class SceneWorld extends Phaser.Scene {
         const belowLayer = map.createLayer("Below Player", tileset, 0, 0);
         const worldLayer = map.createLayer("World", tileset, 0, 0);
         const aboveLayer = map.createLayer("Above Player", tileset, 0, 0);
+
+
+
+
+        // TESTING MASK ON FOREST
+        /*
+        this.rt = this.make.renderTexture({ x: 1000, y: 0, width: 600, height: 400, });
+
+        var mask = this.rt.createBitmapMask();
+
+        // fill it with black
+        this.rt.fill(0x000000, 1)
+
+        // draw the floorLayer into it
+        this.rt.draw(belowLayer)
+
+        // set a dark blue tint
+        this.rt.setTint(0x0a2948)
+        */
+
+
+
+
+
+
+
+
     
         worldLayer.setCollisionByProperty({ collides: true });
         aboveLayer.setDepth(10);
@@ -87,6 +114,7 @@ export default class SceneWorld extends Phaser.Scene {
                 if (players[id].playerId === socket.id) {
                     self.playerManager.addPlayer(self, players[id], worldLayer, map);
                     self.afterPlayerSpawn(players[id].objects);
+                    self.checkSwordEquipped(players[id].swordEquipped);
                     console.log('this player spawned');
                 }
             });
@@ -169,6 +197,12 @@ export default class SceneWorld extends Phaser.Scene {
             return;
         }
 
+        if (this.vision)
+        {
+            this.vision.x = this.player.body.position.x + 11;
+            this.vision.y = this.player.body.position.y + 15;
+        }
+
         // ------------------------------ PLAYER-SERVER MOVEMENT LOGIC ------------------------------
 
         if (!this.playerContainer.isColliding) {
@@ -194,7 +228,7 @@ export default class SceneWorld extends Phaser.Scene {
         }
 
         // check if player has gone into main building
-        if (this.playerContainer.body.position.x > 1140 && this.playerContainer.body.position.y < 600 && this.playerContainer.body.position.y > 500) {
+        if (this.playerContainer.body.position.x > 1140 && this.playerContainer.body.position.y < 600) {
 
             // pause player position
             this.playerContainer.body.velocity.x = 0;
@@ -228,7 +262,49 @@ export default class SceneWorld extends Phaser.Scene {
         document.getElementById('inventory_button').style.display = 'block';
 
         this.unpauseAfterAttacks();
-        
+
+        // check if propeller should be spawned
+        if (sceneObjects.length === 0) {
+            this.spawnPropeller();
+            this.spawnPlane();
+            this.spawnPilot();
+        } else {
+            for (let obj of sceneObjects) {
+                if (obj.name === 'propeller' && obj.visible === false) {
+                    continue;
+                } else {
+                    this.spawnPropeller();
+                }
+    
+            }
+            this.spawnPlane();
+            this.spawnPilot();
+        }
+
+
+
+
+        // testing forest map mask
+        /*
+        this.vision = this.make.image({
+            x: this.player.body.position.x,
+            y: this.player.body.position.y,
+            key: 'vision',
+            add: false
+        })
+        this.vision.scale = 2.5
+    
+        this.rt.mask = new Phaser.Display.Masks.BitmapMask(this, this.vision)
+        this.rt.mask.invertAlpha = true
+        */
+
+
+
+
+
+
+
+
 
     }
 
@@ -267,6 +343,167 @@ export default class SceneWorld extends Phaser.Scene {
             self.allowedActions.move = true;
             self.allowedActions.attack = true;
         });
+    }
+
+    spawnPropeller(){
+        let self = this;
+
+        // Create propeller NPC
+        this.propeller = new NPC(this, propellerConfig);
+        this.propeller.createDialogueUI();
+        this.propellerCollider = this.physics.add.collider(this.playerContainer, this.propeller);
+
+        // Create propeller collision box
+        this.propellerContainer = this.add.container(this.propeller.x, this.propeller.y);
+        this.propellerContainer.setSize(50, 50);
+        this.physics.world.enable(this.propellerContainer);
+
+        // create player collisions with propeller container
+        this.propellerOverlap = this.physics.add.overlap(this.propellerContainer, this.playerContainer, function() {
+
+            self.cursors.space.on("down", () => {
+
+                if (!self.propellerContainer.body.embedded && self.propellerContainer.body.touching.none) {
+                    return;
+                }
+                
+                if (self.dialogueActive === false) {
+                    self.dialogueActive = true;
+                    self.propeller.readDialogue("hello");
+                    self.player.anims.stop();
+                    return;
+                }
+                
+            });
+        });
+    }
+
+    spawnPlane() {
+        // Create plane
+        this.planeSprite = this.physics.add.sprite(890, 615, 'plane');
+        this.planeSprite.setImmovable();
+        this.planeSprite.setDepth(60);
+
+        // create player collisions with plane
+        this.physics.add.collider(this.playerContainer, this.planeSprite);
+    }
+
+    spawnPilot() {
+        let self = this;
+        
+        // Create pilot NPC
+        this.pilot = new NPC(this, pilotConfig);
+        this.pilot.setScale(2);
+        this.pilot.createDialogueUI();
+        this.pilotCollider = this.physics.add.collider(this.playerContainer, this.pilot);
+
+        // Create pilot interaction container
+        this.pilotContainer = this.add.container(this.pilot.x, this.pilot.y);
+        this.pilotContainer.setSize(50, 40);
+        this.physics.world.enable(this.pilotContainer);
+        this.pilotOverlap = this.physics.add.overlap(this.playerContainer, this.pilotContainer, function() {
+
+            self.cursors.space.on("down", () => {
+
+                if (!self.pilotContainer.body.embedded && self.pilotContainer.body.touching.none) {
+                    return;
+                }
+
+                let hasPropeller = self.inventory.checkItem('propeller');
+                
+                if (self.dialogueActive === false) {
+                    self.dialogueActive = true;
+                    self.player.anims.stop();
+                    if (hasPropeller !== false) {
+                        self.pilot.readDialogue("foundPropeller");
+                    } else {
+                        self.pilot.readDialogue("hello");
+                    }
+                    return;
+                }
+
+            });
+        });
+    }
+
+    sceneCallbacks(callback) {
+        let self = this;
+        setTimeout(function () {
+            self.dialogueActive = false;
+        }, 200);
+
+        if (callback === 'removePropeller') {
+            this.removePropeller();
+        }
+        if (callback === 'planeFlyAway') {
+            this.planeFlyAway();
+        }
+    }
+
+    removePropeller() {
+        console.log('removed propeller from World')
+        this.propeller.destroy();
+        this.physics.world.removeCollider(this.propellerOverlap);
+        this.physics.world.removeCollider(this.propellerCollider);
+        this.propellerContainer.destroy();
+
+        // tell server to keep object out of scene
+        socket.emit('objRemovedFromScene', 'propeller');
+    }
+
+    planeFlyAway() {
+        
+        let self = this;
+
+        socket.emit('endTutorial');
+
+        // pause player position
+        this.playerContainer.body.moves = false;
+
+        // make pilot turn to face plane then disappear
+        this.pilot.setTexture('sprites1', 28)
+        setTimeout(function () {
+            self.pilot.destroy();
+            self.physics.world.removeCollider(self.pilotOverlap);
+            self.physics.world.removeCollider(self.pilotCollider);
+            self.pilotContainer.destroy();
+        }, 800);
+
+        // put propeller sprite on plane and rotate it
+        let propeller = this.physics.add.sprite(890, 660, 'propeller');
+        propeller.setDepth(60);
+
+        let angle = 0;
+        const interval = setInterval(function() {
+            propeller.setAngle(angle);
+            if (angle >= 360) {
+                angle = 0;
+            }
+            angle++
+        }, 2);
+
+        // give plane a y velocity to fly down the screen
+        setTimeout(function () {
+            self.planeSprite.setVelocity(0, 170);
+            propeller.setVelocity(0, 170);
+
+            setTimeout(function () {
+                self.cameras.main.fadeOut(2000);
+
+                // change scene
+                socket.off();
+
+                let scenes = {
+                    old: 'SceneWorldTutorial',
+                    new: 'SceneWorld'
+                }
+
+                self.scene.start(scenes.new, self);
+                self.anims.resumeAll();
+                socket.emit("sceneChange", scenes);
+            }, 2500);
+
+        }, 800);
     }
 
     checkSwordEquipped(isEquipped) {

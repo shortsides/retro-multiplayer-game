@@ -48,6 +48,14 @@ export default class PlayerController {
             this.updateCoins(coins);
         })
 
+        this.client_io.on("objRemovedFromScene", obj => {
+            this.trackObjState(obj);
+        })
+
+        this.client_io.on("endTutorial", data => {
+            this.endTutorial(data);
+        })
+
         /*
         this.client_io.on("attack", attackData => {
             this.handleAttack(attackData);
@@ -74,7 +82,7 @@ export default class PlayerController {
 
     validateInput(input) {
         if (Math.abs(input.press_time) > 1/40) {
-            console.log('input invalid');
+            //console.log('input invalid');
             return false;
         }
         return true;
@@ -179,6 +187,20 @@ export default class PlayerController {
         }
     }
 
+    handleAttack(attackData) {
+
+        this.state.health -= attackData.damage;
+        console.log(`${this.client_io.name} took ${attackData.damage} damage`);
+
+        if (this.state.health <1) {
+            console.log(`${this.client_io.name} died`)
+            this.state.isDead = true;
+        }
+
+        // emit to all players that the player was damaged
+        this.world.io.sockets.in(this.world.roomName).emit('playerDamaged', this.state);
+    }
+
 
     changeScene(scenes) {
 
@@ -242,9 +264,37 @@ export default class PlayerController {
     }
 
 
+    // keep track of objects that should be removed from scenes
+    trackObjState(obj) {
+        let newObj = {
+            name: obj,
+            visible: false
+        }
+        this.state.objects.push(newObj);
+    }
+
+
     // when a player's inventory state changes, update inventory
     updateInventory(items) {
         this.state.inventory = items;
+        this.checkInventory(); 
+    }
+
+    checkInventory() {
+
+        // check if player has sword
+        for (let i of this.state.inventory) {
+            if (i.available) {
+                continue;
+            }
+            if (i.props.class === 'sword') {
+                this.state.swordEquipped = true;
+                console.log(`sword equipped by ${this.name}`);
+                this.client_io.emit('swordEquipped', true);
+                return;
+            }
+        }
+        this.client_io.emit('swordEquipped', false);
     }
 
     // add new coins (e.g. from minigame) to player's coins
@@ -252,18 +302,6 @@ export default class PlayerController {
         this.state.coins += coins;
     }
 
-    handleAttack(attackData) {
-        this.state.health -= attackData.damage;
-        console.log(`${this.client_io.name} took ${attackData.damage} damage`);
-
-        if (this.state.health <1) {
-            console.log(`${this.client_io.name} died`)
-            this.state.isDead = true;
-        }
-
-        // emit to all players that the player was damaged
-        this.world.io.sockets.in(this.world.roomName).emit('playerDamaged', this.state);
-    }
 
     // create player's empty inventory slots
     createInventorySlots(inventorySize) {
@@ -275,7 +313,11 @@ export default class PlayerController {
             inventory.push(item)
         }
         return inventory;
-      }
+    }
+
+    endTutorial() {
+        this.state.tutorial = false;
+    }
 
 
     // set initial state for player - spawn player in main building
@@ -300,7 +342,10 @@ export default class PlayerController {
             health: 25,
             maxHealth: 25,
             inventory: this.createInventorySlots(20),
-            coins: 0
+            objects: [],
+            tutorial: true,
+            coins: 0,
+            swordEquipped: false
         }
     }
 
