@@ -3,6 +3,7 @@ import SceneMainBuilding from "./src/scenes/mainBuilding.js";
 import SceneMainBuildingBasement from "./src/scenes/mainBuildingBasement.js";
 import SceneWorld from "./src/scenes/World.js";
 import SceneWorldTutorial from "./src/scenes/WorldTutorial.js";
+import SceneDarkForest from "./src/scenes/darkForest.js";
 import MiniGameSnake from "./src/scenes/minigames/snake.js";
 
 // production server config
@@ -16,7 +17,7 @@ export const socket = io("https://agile-meadow-49870.herokuapp.com/", {
 //export const socket = io('http://localhost:3000/');
 
 // global developer mode toggle for debugging tools
-export const devMode = false;
+export const devMode = true;
 export const lag_ms = 0;
 
 socket.on('loginSuccess', initGame);
@@ -191,6 +192,7 @@ let sceneMainBuilding = new SceneMainBuilding();
 let sceneMainBuildingBasement = new SceneMainBuildingBasement();
 let sceneWorld = new SceneWorld();
 let sceneWorldTutorial = new SceneWorldTutorial();
+let sceneDarkForest = new SceneDarkForest();
 
 // create minigames
 let miniGameSnake = new MiniGameSnake();
@@ -227,6 +229,7 @@ function initGame(id) {
     game.scene.add('SceneMainBuildingBasement', sceneMainBuildingBasement);
     game.scene.add('SceneWorld', sceneWorld);
     game.scene.add('SceneWorldTutorial', sceneWorldTutorial);
+    game.scene.add('SceneDarkForest', sceneDarkForest);
     game.scene.add('MiniGameSnake', miniGameSnake);
 
     // start title scene

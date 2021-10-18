@@ -40,23 +40,35 @@ export const SCENES = [
         name: 'SceneWorld',
         position: {
             x: 1167,
-            y: 625
+            y: 630
         },
         altEntrances: [
             {
                 from: 'SceneWorldTutorial',
                 x: 975,
                 y: 625
-            }
+            },
+            {
+                from: 'SceneDarkForest',
+                x: 1000,
+                y: 404
+            },
         ]
     },
     {
         name: 'SceneWorldTutorial',
         position: {
             x: 1167,
-            y: 625
+            y: 630
         },
-    }
+    },
+    {
+        name: 'SceneDarkForest',
+        position: {
+            x: 30,
+            y: 381
+        }
+    },
 ]
 
 export default class WorldController {

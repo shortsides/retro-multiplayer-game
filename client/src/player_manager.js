@@ -360,10 +360,10 @@ export default class PlayerManager extends Phaser.Scene {
         // create player container for sprite and floating name
         self.playerContainer = self.add.container(playerInfo.position.x, playerInfo.position.y)
         self.playerContainer.setSize(22, 30);
-        
+
         // add player sprite
         self.player = self.physics.add
-        .sprite(0, -4, playerSprite.spriteSheet, playerSprite.front)
+        .sprite(0, -9, playerSprite.spriteSheet, playerSprite.front)
         .setScale(1)
         self.player.name = playerSprite.spriteSheet;
     

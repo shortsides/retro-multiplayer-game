@@ -23,6 +23,10 @@ export default class TitleScene extends Phaser.Scene {
         // load world
         this.load.image("tiles-world", "../../assets/tilesets/world_atlas.png");
         this.load.tilemapTiledJSON("map-world", "../../assets/tilesets/world_v1.json");
+        this.load.tilemapTiledJSON("map-dark-forest", "../../assets/tilesets/dark-forest.json");
+
+        // load fog of war mask
+        this.load.image("circle-mask", "../../assets/sprites/circle-mask.png");
 
         // load title screens
         this.load.image("title-snake", "../../assets/titlescreens/snake_titlescreen.png");

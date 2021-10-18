@@ -21,7 +21,7 @@ export default class SceneMainBuilding extends Phaser.Scene {
         this.dialogueActive = false;
         this.allowedActions = {
             move: true,
-            attack: false,
+            attack: true,
         }
         this.tutorial = false;
     }
@@ -143,7 +143,15 @@ export default class SceneMainBuilding extends Phaser.Scene {
         });
 
         socket.on('playerDamaged', playerState => {
-            self.playerManager.handleDamage(self, playerState);
+            if (playerState.playerId === socket.id) {
+                // slight delay to compensate for lag
+                setTimeout(function(){ 
+                    self.playerManager.handleDamage(self, playerState);
+                }, 500);
+            } else {
+                self.playerManager.handleDamage(self, playerState);
+            }
+            
         })
 
         // remove players who leave the scene
@@ -208,7 +216,7 @@ export default class SceneMainBuilding extends Phaser.Scene {
         }
 
         // check if player has left main building
-        if (this.playerContainer.body.position.y > 640) {
+        if (this.playerContainer.body.position.y > 630) {
 
             // pause player position
             this.playerContainer.body.moves = false;

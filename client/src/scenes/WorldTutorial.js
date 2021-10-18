@@ -46,33 +46,6 @@ export default class SceneWorldTutorial extends Phaser.Scene {
         const worldLayer = map.createLayer("World", tileset, 0, 0);
         const aboveLayer = map.createLayer("Above Player", tileset, 0, 0);
 
-
-
-
-        // TESTING MASK ON FOREST
-        /*
-        this.rt = this.make.renderTexture({ x: 1000, y: 0, width: 600, height: 400, });
-
-        var mask = this.rt.createBitmapMask();
-
-        // fill it with black
-        this.rt.fill(0x000000, 1)
-
-        // draw the floorLayer into it
-        this.rt.draw(belowLayer)
-
-        // set a dark blue tint
-        this.rt.setTint(0x0a2948)
-        */
-
-
-
-
-
-
-
-
-    
         worldLayer.setCollisionByProperty({ collides: true });
         aboveLayer.setDepth(10);
 
@@ -197,12 +170,6 @@ export default class SceneWorldTutorial extends Phaser.Scene {
             return;
         }
 
-        if (this.vision)
-        {
-            this.vision.x = this.player.body.position.x + 11;
-            this.vision.y = this.player.body.position.y + 15;
-        }
-
         // ------------------------------ PLAYER-SERVER MOVEMENT LOGIC ------------------------------
 
         if (!this.playerContainer.isColliding) {
@@ -280,31 +247,6 @@ export default class SceneWorldTutorial extends Phaser.Scene {
             this.spawnPlane();
             this.spawnPilot();
         }
-
-
-
-
-        // testing forest map mask
-        /*
-        this.vision = this.make.image({
-            x: this.player.body.position.x,
-            y: this.player.body.position.y,
-            key: 'vision',
-            add: false
-        })
-        this.vision.scale = 2.5
-    
-        this.rt.mask = new Phaser.Display.Masks.BitmapMask(this, this.vision)
-        this.rt.mask.invertAlpha = true
-        */
-
-
-
-
-
-
-
-
 
     }
 
@@ -403,7 +345,7 @@ export default class SceneWorldTutorial extends Phaser.Scene {
         this.physics.world.enable(this.pilotContainer);
         this.pilotOverlap = this.physics.add.overlap(this.playerContainer, this.pilotContainer, function() {
 
-            self.cursors.space.on("down", () => {
+            this.pilotSpaceKey = self.cursors.space.on("down", () => {
 
                 if (!self.pilotContainer.body.embedded && self.pilotContainer.body.touching.none) {
                     return;
@@ -459,6 +401,9 @@ export default class SceneWorldTutorial extends Phaser.Scene {
 
         // pause player position
         this.playerContainer.body.moves = false;
+
+        // stop player from being able to interact with pilot
+        this.input.keyboard.enabled = false;
 
         // make pilot turn to face plane then disappear
         this.pilot.setTexture('sprites1', 28)

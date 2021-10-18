@@ -7,10 +7,10 @@ import Cursors from "../cursors.js";
 import ChatManager from "../chat_manager.js";
 import NPC from "../NPC.js";
 
-export default class SceneWorld extends Phaser.Scene {
+export default class DarkForest extends Phaser.Scene {
 
     constructor() {
-        super('SceneWorld');
+        super('SceneDarkForest');
     }
 
     init() {
@@ -30,23 +30,29 @@ export default class SceneWorld extends Phaser.Scene {
 
     create() {
 
-        const scene = 'SceneWorld';
+        const scene = 'SceneDarkForest';
 
         let self = this;
     
-        const map = this.make.tilemap({ key: "map-world" });
+        const map = this.make.tilemap({ key: "map-dark-forest" });
     
         // Load tileset
         const tileset = map.addTilesetImage("atlas_32x", "tiles-world");
     
         // Create layers
         const floorLayer = map.createLayer("Floor", tileset, 0, 0);
-        const belowLayer = map.createLayer("Below Player", tileset, 0, 0);
         const worldLayer = map.createLayer("World", tileset, 0, 0);
         const aboveLayer = map.createLayer("Above Player", tileset, 0, 0);
     
         worldLayer.setCollisionByProperty({ collides: true });
         aboveLayer.setDepth(10);
+
+        // Create mask for 'fog of war' effect
+        this.fog = this.make.renderTexture({ x: 0, y: 0, width: 992, height: 992, });
+        this.fog.fill(0x000000, 1);
+        this.fog.setTint(0x0a2948);
+        this.fog.draw(floorLayer);
+        this.fog.setDepth(15);
 
         // Create cursor keys
         const cursors = new Cursors(this);
@@ -188,19 +194,21 @@ export default class SceneWorld extends Phaser.Scene {
         // ------------------------------
 
 
+        // update player vision mask
+        if (this.vision)
+        {
+            this.vision.x = this.player.body.position.x + 22;
+            this.vision.y = this.player.body.position.y + 30;
+        }
+
+        // devmode debug x/y coords
         if (devMode) {
             this.debugPos.setText(`${this.playerContainer.body.position.x - 11}, ${this.playerContainer.body.position.y - 15}`);
         }
 
-        // check if player has gone into main building or dark forest
-        if (this.playerContainer.body.position.x > 1140 && this.playerContainer.body.position.y < 600) {
+        // check if player has left dark forest
+        if (this.playerContainer.body.position.x < 5 && this.playerContainer.body.position.y < 460) {
 
-            let scenes = {};
-            if (this.playerContainer.body.position.y > 500) { // main building
-                scenes = {new: 'SceneMainBuilding'}
-            } else { // dark forest
-                scenes = {new: 'SceneDarkForest'}
-            }
             // pause player position
             this.playerContainer.body.velocity.x = 0;
             this.playerContainer.body.velocity.y = 0;
@@ -208,6 +216,12 @@ export default class SceneWorld extends Phaser.Scene {
 
             // change scene
             socket.off();
+
+            let scenes = {
+                old: 'SceneDarkForest',
+                new: 'SceneWorld'
+            }
+
             this.scene.start(scenes.new, this);
             this.anims.resumeAll();
             socket.emit("sceneChange", scenes);
@@ -228,7 +242,18 @@ export default class SceneWorld extends Phaser.Scene {
         document.getElementById('inventory_button').style.display = 'block';
 
         this.unpauseAfterAttacks();
-        
+
+        // create player vision mask on fog
+        this.vision = this.make.image({
+            x: this.player.body.position.x,
+            y: this.player.body.position.y,
+            key: 'circle-mask',
+            add: false
+        });
+        this.vision.scale = 0.5;
+
+        this.fog.mask = new Phaser.Display.Masks.BitmapMask(this, this.vision);
+        this.fog.mask.invertAlpha = true;
 
     }
 
