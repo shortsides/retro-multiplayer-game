@@ -21,7 +21,7 @@ export default class SceneMainBuilding extends Phaser.Scene {
         this.dialogueActive = false;
         this.allowedActions = {
             move: true,
-            attack: true,
+            attack: false,
         }
         this.tutorial = false;
     }
@@ -141,18 +141,6 @@ export default class SceneMainBuilding extends Phaser.Scene {
         socket.on('playerMoved', message => {
             self.playerManager.messages.push(message);
         });
-
-        socket.on('playerDamaged', playerState => {
-            if (playerState.playerId === socket.id) {
-                // slight delay to compensate for lag
-                setTimeout(function(){ 
-                    self.playerManager.handleDamage(self, playerState);
-                }, 500);
-            } else {
-                self.playerManager.handleDamage(self, playerState);
-            }
-            
-        })
 
         // remove players who leave the scene
         socket.on('playerChangedScene', function (player) {

@@ -137,7 +137,14 @@ export default class SceneWorld extends Phaser.Scene {
         });
 
         socket.on('playerDamaged', playerState => {
-            self.playerManager.handleDamage(self, playerState);
+            if (playerState.playerId === socket.id) {
+                // slight delay to compensate for lag
+                setTimeout(function(){ 
+                    self.playerManager.handleDamage(self, playerState);
+                }, 500);
+            } else {
+                self.playerManager.handleDamage(self, playerState);
+            }
         })
 
         socket.on('swordEquipped', isEquipped => {

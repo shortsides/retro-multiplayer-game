@@ -38,7 +38,7 @@ export default class PlayerManager extends Phaser.Scene {
                     this.movethisPlayer(player, state);
                 } else {
                     // Received the position of an entity other than this client's.
-                    this.moveOtherPlayers(otherPlayers, state);
+                    this.moveOtherPlayers(otherPlayers, state, player);
                 }
             }
         }
@@ -251,7 +251,7 @@ export default class PlayerManager extends Phaser.Scene {
     }
     
     
-    moveOtherPlayers(otherPlayers, state) {
+    moveOtherPlayers(otherPlayers, state, player) {
 
         let self = this;
 
@@ -276,7 +276,25 @@ export default class PlayerManager extends Phaser.Scene {
                 }
 
             }
-        })    
+            // if other player is too far away from this player, hide their health bar
+            const prevHealthBarVisibility = otherPlayer.healthBarVisible;
+
+            if (otherPlayer.body.position.x > player.body.position.x + 100 
+                || otherPlayer.body.position.x < player.body.position.x - 100 
+                || otherPlayer.body.position.y > player.body.position.y + 100 
+                || otherPlayer.body.position.y < player.body.position.y - 100) {
+
+                otherPlayer.healthBarVisible = false;
+            } else {
+                if (player.scene.allowedActions.attack) {
+                    otherPlayer.healthBarVisible = true;
+                }
+            }
+            if (otherPlayer.healthBarVisible !== prevHealthBarVisibility) {
+                self.toggleHealthBarVisiblity(otherPlayer.first.playerId, otherPlayer.healthBarVisible);
+            }
+
+        })
 
     }
 
@@ -402,7 +420,6 @@ export default class PlayerManager extends Phaser.Scene {
 
         // create health bar
         let healthBar = self.add.dom(0, -28).createFromCache("healthBar")
-            .setDepth(30)
         let healthBarEl = document.getElementById('health_bar')
         healthBarEl.style.display = 'none';
         healthBarEl.id = `health_bar_${client_id}`; // specify health bar id as player id
@@ -475,9 +492,8 @@ export default class PlayerManager extends Phaser.Scene {
         self.physics.add.collider(otherPlayerContainer, worldLayer);
 
         // create health bar
-        let healthBar = self.add.dom(0, -28).createFromCache("healthBar")
-            .setDepth(30)
-        let healthBarEl = document.getElementById('health_bar')
+        let healthBar = self.add.dom(0, -28).createFromCache("healthBar");
+        let healthBarEl = document.getElementById('health_bar');
         healthBarEl.style.display = 'none';
         healthBarEl.id = `health_bar_${playerInfo.playerId}`; // specify health bar id as player id
         otherPlayerContainer.add(healthBar);
@@ -495,6 +511,10 @@ export default class PlayerManager extends Phaser.Scene {
     }
 
     listenPlayerAttacks(self, otherPlayerContainer, otherPlayerSprite, otherPlayerId) {
+
+        if (!self.allowedActions.attack) {
+            return;
+        }
 
         let attackData = {}
         let attackLogged = false;
@@ -597,6 +617,16 @@ export default class PlayerManager extends Phaser.Scene {
             healthBar.style.display = 'block';
         }
 
+    }
+
+    toggleHealthBarVisiblity(playerId, show) {
+        console.log('change health bar visiblity')
+        let healthBarEl = document.getElementById(`health_bar_${playerId}`);
+        if (show) {
+            healthBarEl.style.display = 'block';
+        } else {
+            healthBarEl.style.display = 'none';
+        }
     }
 
     handleDamage(self, playerState) {

@@ -143,7 +143,14 @@ export default class DarkForest extends Phaser.Scene {
         });
 
         socket.on('playerDamaged', playerState => {
-            self.playerManager.handleDamage(self, playerState);
+            if (playerState.playerId === socket.id) {
+                // slight delay to compensate for lag
+                setTimeout(function(){ 
+                    self.playerManager.handleDamage(self, playerState);
+                }, 500);
+            } else {
+                self.playerManager.handleDamage(self, playerState);
+            }
         })
 
         socket.on('swordEquipped', isEquipped => {
@@ -197,8 +204,8 @@ export default class DarkForest extends Phaser.Scene {
         // update player vision mask
         if (this.vision)
         {
-            this.vision.x = this.player.body.position.x + 22;
-            this.vision.y = this.player.body.position.y + 30;
+            this.vision.x = this.playerContainer.body.position.x + 11;
+            this.vision.y = this.playerContainer.body.position.y + 15;
         }
 
         // devmode debug x/y coords
