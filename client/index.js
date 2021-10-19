@@ -4,6 +4,7 @@ import SceneMainBuildingBasement from "./src/scenes/mainBuildingBasement.js";
 import SceneWorld from "./src/scenes/World.js";
 import SceneWorldTutorial from "./src/scenes/WorldTutorial.js";
 import SceneDarkForest from "./src/scenes/darkForest.js";
+import SceneForestHut from "./src/scenes/forestHut.js";
 import MiniGameSnake from "./src/scenes/minigames/snake.js";
 
 // production server config
@@ -193,6 +194,7 @@ let sceneMainBuildingBasement = new SceneMainBuildingBasement();
 let sceneWorld = new SceneWorld();
 let sceneWorldTutorial = new SceneWorldTutorial();
 let sceneDarkForest = new SceneDarkForest();
+let sceneForestHut = new SceneForestHut();
 
 // create minigames
 let miniGameSnake = new MiniGameSnake();
@@ -230,6 +232,7 @@ function initGame(id) {
     game.scene.add('SceneWorld', sceneWorld);
     game.scene.add('SceneWorldTutorial', sceneWorldTutorial);
     game.scene.add('SceneDarkForest', sceneDarkForest);
+    game.scene.add('SceneForestHut', sceneForestHut);
     game.scene.add('MiniGameSnake', miniGameSnake);
 
     // start title scene

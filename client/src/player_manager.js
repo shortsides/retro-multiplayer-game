@@ -402,6 +402,7 @@ export default class PlayerManager extends Phaser.Scene {
         // enable physics for player container
         self.physics.world.enable(self.playerContainer);
         self.playerContainer.body.debugBodyColor = 0xadfefe;
+        self.playerContainer.setDepth(5);
         self.physics.add.collider(self.playerContainer, worldLayer, function() {
             self.playerContainer.isColliding = true;
         });
@@ -466,7 +467,7 @@ export default class PlayerManager extends Phaser.Scene {
 
         // add other player sprite
         const otherPlayer = self.physics.add
-        .sprite(0, -4, otherPlayerSprite.spriteSheet, otherPlayerSprite.front)
+        .sprite(0, -9, otherPlayerSprite.spriteSheet, otherPlayerSprite.front)
         .setScale(1);
 
         otherPlayer.playerId = playerInfo.playerId;
@@ -487,6 +488,7 @@ export default class PlayerManager extends Phaser.Scene {
         otherPlayerContainer.sprite = otherPlayerSprite;
         self.physics.world.enable(otherPlayerContainer);
         otherPlayerContainer.body.debugBodyColor = 0xadfefe;
+        otherPlayerContainer.setDepth(4);
     
         // Watch the other player and worldLayer for collisions
         self.physics.add.collider(otherPlayerContainer, worldLayer);

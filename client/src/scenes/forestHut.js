@@ -6,11 +6,12 @@ import PlayerManager from "../player_manager.js";
 import Cursors from "../cursors.js";
 import ChatManager from "../chat_manager.js";
 import NPC from "../NPC.js";
+import { forestHermitConfig } from "../NPC_char.js";
 
-export default class DarkForest extends Phaser.Scene {
+export default class forestHut extends Phaser.Scene {
 
     constructor() {
-        super('SceneDarkForest');
+        super('SceneForestHut');
     }
 
     init() {
@@ -20,41 +21,32 @@ export default class DarkForest extends Phaser.Scene {
         this.dialogueActive = false;
         this.allowedActions = {
             move: true,
-            attack: true,
+            attack: false,
         }
     }
 
     preload() {
-
+        
     }
 
     create() {
 
-        const scene = 'SceneDarkForest';
+        const scene = 'SceneForestHut';
 
-        let self = this;
-    
-        const map = this.make.tilemap({ key: "map-dark-forest" });
+        let self = this;    
     
         // Load tileset
-        const tileset = map.addTilesetImage("atlas_32x", "tiles-world");
+        const map = this.make.tilemap({ key: "map-forest-hut" });
+        const tileset = map.addTilesetImage("interior_atlas", "tiles", 32, 32, 1, 2);
     
         // Create layers
         const floorLayer = map.createLayer("Floor", tileset, 0, 0);
+        const belowLayer = map.createLayer("Below Player", tileset, 0, 0);
         const worldLayer = map.createLayer("World", tileset, 0, 0);
         const aboveLayer = map.createLayer("Above Player", tileset, 0, 0);
     
         worldLayer.setCollisionByProperty({ collides: true });
         aboveLayer.setDepth(10);
-
-        // Create mask for 'fog of war' effect
-        this.fog = this.make.renderTexture({ x: 0, y: 0, width: 992, height: 992, });
-        this.fog.fill(0x000000);
-        this.fog.setTint(0x0a2948);
-        this.fog.draw(floorLayer);
-        this.fog.draw(worldLayer);
-        this.fog.draw(aboveLayer);
-        this.fog.setDepth(15);
 
         // Create cursor keys
         const cursors = new Cursors(this);
@@ -64,13 +56,16 @@ export default class DarkForest extends Phaser.Scene {
             cursors.debugGraphics(this, worldLayer);
         }
 
+        // Add fire animations
+        this.add.sprite(466, 475, 'fire').setScale(1.5).play('fire_anim');
+
         // Create chat window
         this.chat = this.add.dom(16, 16).createFromCache("chat")
             .setScrollFactor(0)
             .setDepth(30)
-
+        
         let chat = new ChatManager(this);
-
+        
         // Reload messages from previous scene into chat
         let messages = this.registry.get('chatMessages')
         chat.reloadMessages(this, messages);
@@ -83,17 +78,20 @@ export default class DarkForest extends Phaser.Scene {
         
         // Create player manager in scene
         this.playerManager = new PlayerManager(scene);
-        
+
         // Turn off camera initially until player info is loaded from server
         this.cameras.main.visible = false;
-
-
+    
+        
 
         async function spawnThisPlayer (players) {
             Object.keys(players).forEach(function (id) {
                 if (players[id].playerId === socket.id) {
                     self.playerManager.addPlayer(self, players[id], worldLayer, map);
-                    self.afterPlayerSpawn(players[id].objects);
+                    self.afterPlayerSpawn();
+                    if (players[id].tutorial) {
+                        self.tutorial = true;
+                    }
                     console.log('this player spawned');
                 }
             });
@@ -116,23 +114,21 @@ export default class DarkForest extends Phaser.Scene {
 
         // When this player joins, spawn all current players in room
         socket.on('currentPlayers', spawnAllPlayers);
-
+        
         
         // When a new player joins, spawn them
         socket.on('newPlayer', function (playerInfo) {
-            if (playerInfo.scene !== scene) {
-                return;
-            }
-            if (playerInfo.playerId === socket.id) {
+            if (playerInfo.scene !== scene || playerInfo.playerId === socket.id) {
                 return;
             }
             if (playerInfo.init === true) {
+                console.log(`${playerInfo.name} joined the game`);
                 chat.alertRoom(self, `${playerInfo.name} joined the game.`)
             }
             self.playerManager.addOtherPlayers(self, playerInfo, worldLayer, scene);
-            
+            console.log(`spawned new player in ${scene}`);
         })
-    
+        
         /*
         // Handle other player movements
         socket.on('otherPlayerMoved', function(playerInfo, ticker) {
@@ -144,21 +140,6 @@ export default class DarkForest extends Phaser.Scene {
             self.playerManager.messages.push(message);
         });
 
-        socket.on('playerDamaged', playerState => {
-            if (playerState.playerId === socket.id) {
-                // slight delay to compensate for lag
-                setTimeout(function(){ 
-                    self.playerManager.handleDamage(self, playerState);
-                }, 500);
-            } else {
-                self.playerManager.handleDamage(self, playerState);
-            }
-        })
-
-        socket.on('swordEquipped', isEquipped => {
-            self.checkSwordEquipped(isEquipped);
-        })
-        
         // remove players who leave the scene
         socket.on('playerChangedScene', function (player) {
             self.playerManager.changeScene(self, player, scene);
@@ -169,14 +150,13 @@ export default class DarkForest extends Phaser.Scene {
             self.playerManager.deletePlayer(self, playerId, playerName);
             chat.alertRoom(self, `${playerName} left the game.`)
         })
-        
     
     }
 
     update(time, delta) {
 
         if (!this.gameActive) { // do not run if game is not active
-            return
+            return;
         }
 
         if (this.dialogueActive) { // do not run if player is interacting with non-player objects
@@ -186,6 +166,7 @@ export default class DarkForest extends Phaser.Scene {
         // ------------------------------ PLAYER-SERVER MOVEMENT LOGIC ------------------------------
 
         if (!this.playerContainer.isColliding) {
+
             // Listen to the server.
             this.playerManager.processServerMessages(this.playerContainer, this.otherPlayers);
 
@@ -198,25 +179,16 @@ export default class DarkForest extends Phaser.Scene {
             // Play movement animations
             this.playerManager.playerAnims(this);
         }
-
+        
         this.playerContainer.isColliding = false;
         // ------------------------------
 
-
-        // update player vision mask
-        if (this.vision)
-        {
-            this.vision.x = this.playerContainer.body.position.x + 11;
-            this.vision.y = this.playerContainer.body.position.y + 15;
-        }
-
-        // devmode debug x/y coords
         if (devMode) {
             this.debugPos.setText(`${this.playerContainer.body.position.x - 11}, ${this.playerContainer.body.position.y - 15}`);
         }
 
-        // check if player has left dark forest
-        if (this.playerContainer.body.position.x < 5 && this.playerContainer.body.position.y < 460) {
+        // check if player has left the hut
+        if (this.playerContainer.body.position.y > 570) {
 
             // pause player position
             this.playerContainer.body.velocity.x = 0;
@@ -227,30 +199,10 @@ export default class DarkForest extends Phaser.Scene {
             socket.off();
 
             let scenes = {
-                old: 'SceneDarkForest',
-                new: 'SceneWorld'
+                old: 'SceneForestHut',
+                new: 'SceneDarkForest'
             }
-
-            this.scene.start(scenes.new, this);
-            this.anims.resumeAll();
-            socket.emit("sceneChange", scenes);
-
-        }
-        // check if player has gone into forest hut
-        if (this.playerContainer.body.position.y < 212) {
-
-            // pause player position
-            this.playerContainer.body.velocity.x = 0;
-            this.playerContainer.body.velocity.y = 0;
-            this.cameras.main.fadeOut(2000);
-
-            // change scene
-            socket.off();
-
-            let scenes = {
-                new: 'SceneForestHut'
-            }
-
+            
             this.scene.start(scenes.new, this);
             this.anims.resumeAll();
             socket.emit("sceneChange", scenes);
@@ -258,77 +210,67 @@ export default class DarkForest extends Phaser.Scene {
         }
     
     }
-    
+
     // Function that creates collisions etc that can only be created after player is spawned
     afterPlayerSpawn() {
 
         this.gameActive = true;
 
-        let self = this;
-
         // display chat and buttons
         document.getElementById('chatBox').style.display = 'block';
         document.getElementById('inventory_button').style.display = 'block';
-
-        this.unpauseAfterAttacks();
-
-        // create player vision mask on fog
-        this.vision = this.make.image({
-            x: this.player.body.position.x,
-            y: this.player.body.position.y,
-            key: 'circle-mask',
-            add: false
-        });
-        this.vision.scale = 0.5;
-
-        this.fog.mask = new Phaser.Display.Masks.BitmapMask(this, this.vision);
-        this.fog.mask.invertAlpha = true;
+    
+        this.spawnForestHermit();
 
     }
 
-    unpauseAfterAttacks() {
+    spawnForestHermit() {
+
         let self = this;
 
-        // Unpause player actions after action completes e.g. after attacking
-        this.player.on('animationcomplete', function (anim, frame) {
-            this.emit('animationcomplete_' + anim.key, anim, frame);
-        }, this.player);
+        // Create forest hermit NPC
+        this.forestHermit = new NPC(this, forestHermitConfig);
+        this.forestHermit.setScale(2);
+        
+        // Create NPC dialogue UI
+        this.forestHermit.createDialogueUI();
 
-        this.player.on(`animationcomplete_${playerSprite.spriteSheet}-left-sword`, function () {
-            self.playerManager.allowSendInputs = true;
-            self.playerManager.currentAction = null;
-            self.allowedActions.move = true;
-            self.allowedActions.attack = true;
+        // Create forest hermit collision box
+        this.forestHermitContainer = this.add.container(this.forestHermit.x, this.forestHermit.y);
+        this.forestHermitContainer.setSize(22, 30);
+        this.physics.world.enable(this.forestHermitContainer);
+        this.forestHermitContainer.body.setImmovable();
+        this.forestHermitCollider = this.physics.add.collider(this.playerContainer, this.forestHermitContainer);
+
+        // Create forest hermit interaction box
+        this.forestHermitInteractionBox = this.add.container(this.forestHermit.x, this.forestHermit.y);
+        this.forestHermitInteractionBox.setSize(45, 45);
+        this.physics.world.enable(this.forestHermitInteractionBox);
+
+        // listen for player collisions with forest hermit container
+        self.physics.add.overlap(self.forestHermitInteractionBox, self.playerContainer, function() {
+            
+            // interact with forest hermit NPC on 'space'
+            self.cursors.space.on("down", () => {
+
+                if (self.dialogueActive) {
+                    return;
+                }
+
+                if (!self.forestHermitInteractionBox.body.embedded && self.forestHermitInteractionBox.body.touching.none) {
+                    return;
+                }
+                
+                self.dialogueActive = true;
+                //self.forestHermit.setTexture(SPRITES[0].spriteSheet, 20) // face the player
+                self.forestHermit.readDialogue("hello");
+                self.player.anims.stop();
+                self.playerManager.direction = 'right';
+                
+            });
+
         });
 
-        this.player.on(`animationcomplete_${playerSprite.spriteSheet}-right-sword`, function () {
-            self.playerManager.allowSendInputs = true;
-            self.playerManager.currentAction = null;
-            self.allowedActions.move = true;
-            self.allowedActions.attack = true;
-        });
-
-        this.player.on(`animationcomplete_${playerSprite.spriteSheet}-back-sword`, function () {
-            self.playerManager.allowSendInputs = true;
-            self.playerManager.currentAction = null;
-            self.allowedActions.move = true;
-            self.allowedActions.attack = true;
-        });
-
-        this.player.on(`animationcomplete_${playerSprite.spriteSheet}-front-sword`, function () {
-            self.playerManager.allowSendInputs = true;
-            self.playerManager.currentAction = null;
-            self.allowedActions.move = true;
-            self.allowedActions.attack = true;
-        });
-    }
-
-    checkSwordEquipped(isEquipped) {
-        if (isEquipped) {
-            this.allowedActions.attack = true;
-        } else {
-            this.allowedActions.attack = false;
-        }
     }
 
 }

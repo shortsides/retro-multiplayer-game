@@ -67,6 +67,20 @@ export const SCENES = [
         position: {
             x: 30,
             y: 381
+        },
+        altEntrances: [
+            {
+                from: 'SceneForestHut',
+                x: 335,
+                y: 230
+            }
+        ]
+    },
+    {
+        name: 'SceneForestHut',
+        position: {
+            x: 480,
+            y: 582
         }
     },
 ]

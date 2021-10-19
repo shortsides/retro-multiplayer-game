@@ -15,15 +15,16 @@ export default class TitleScene extends Phaser.Scene {
 
     preload() {
 
-        // load main building
+        // load tilesets
         this.load.image("tiles", "../../assets/tilesets/interior_atlas_extruded.png");
+        this.load.image("tiles-world", "../../assets/tilesets/world_atlas.png");
+
+        // load maps
         this.load.tilemapTiledJSON("map", "../../assets/tilesets/main-interior.json");
         this.load.tilemapTiledJSON("map-main-basement", "../../assets/tilesets/main-basement.json");
-
-        // load world
-        this.load.image("tiles-world", "../../assets/tilesets/world_atlas.png");
         this.load.tilemapTiledJSON("map-world", "../../assets/tilesets/world_v1.json");
         this.load.tilemapTiledJSON("map-dark-forest", "../../assets/tilesets/dark-forest.json");
+        this.load.tilemapTiledJSON("map-forest-hut", "../../assets/tilesets/forest-hut.json");
 
         // load fog of war mask
         this.load.image("circle-mask", "../../assets/sprites/circle-mask.png");

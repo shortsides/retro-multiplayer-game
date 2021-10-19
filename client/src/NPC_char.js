@@ -215,3 +215,54 @@ export const pilotConfig = {
         },
     }
 }
+
+export const forestHermitConfig = {
+    x: 500,
+    y: 490,
+    key: 'npc-forestHermit',
+    spritesheet: 'sprites3',
+    spritenum: 40,
+    dialogue: {
+        hello: {
+            question: false,
+            say: [
+                "Hello.",
+                "...",
+                "Sorry, I'm not very good with people. I don't get visitors very often.",
+                "...",
+                "Oh. You're still here.",
+                "Um. Well, since you're here there is something you could help me with.",
+                "There's some blue berries that grow on a tree deep in the forest. They make a really beautiful blue dye that I like.",
+            ],
+            linkTo: "canYouHelp"
+        },
+        canYouHelp: {
+            question: true,
+            say: ["Will you help me find 5 blue berries?"],
+            answers: [
+                {
+                reply: "Yes",
+                linkTo: "thanks"
+                },
+                {
+                reply: "No",
+                linkTo: "goodBye"
+                }
+            ]
+        },
+        thanks: {
+            question: false,
+            say: [
+                "Thanks! Bring them back here when you find them."
+            ],
+            linkTo: false
+        },
+        goodBye: {
+            question: false,
+            say: [
+                "Oh... Ok."
+            ],
+            linkTo: false
+        }
+    }
+};
