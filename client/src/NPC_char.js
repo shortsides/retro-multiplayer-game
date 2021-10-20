@@ -132,7 +132,7 @@ export const pilotConfig = {
             answers: [
                 {
                 reply: "Yes",
-                linkTo: "actionYes"
+                linkTo: "actionYes",
                 },
                 {
                 reply: "No",
@@ -171,6 +171,7 @@ export const pilotConfig = {
                 type: "giveItem",
                 props: {
                     name: 'propeller',
+                    num: 1
                 }
             },
             linkTo: "giveSword"
@@ -242,6 +243,14 @@ export const forestHermitConfig = {
             answers: [
                 {
                 reply: "Yes",
+                function: {
+                    type: "acceptQuest",
+                    props: {
+                        id: 1,
+                        name: 'Find 5 blue berries',
+                        completed: false
+                    }
+                },
                 linkTo: "thanks"
                 },
                 {
@@ -263,6 +272,72 @@ export const forestHermitConfig = {
                 "Oh... Ok."
             ],
             linkTo: false
-        }
+        },
+        questProgressCheck: {
+            question: false,
+            say: ["Did you find me the blue berries yet?"],
+            linkTo: false
+        },
+        foundBerries: {
+            question: false,
+            say: ["Oh it's you! And you actually found me the berries?!",],
+            linkTo: "giveBerries"
+        },
+        giveBerries: {
+            question: false,
+            say: [
+                "I never thought you'd actually be so kind and find them for me.",
+                "I... I thought you'd leave me alone like everyone else does."
+            ],
+            function: {
+                type: "giveItem",
+                props: {
+                    name: 'blue berry',
+                    num: 5
+                }
+            },
+            linkTo: "payReward"
+        },
+        payReward: {
+            question: false,
+            say: [
+                "Here, take this money. Please, I insist.",
+                "*Obtained 20 coins!*",
+            ],
+            function: {
+                type: "addCoins",
+                props: {
+                    coinCount: 20
+                }
+            },
+            linkTo: "seeYa"
+        },
+        seeYa: {
+            question: false,
+            say: ["Hope you buy something nice."],
+            linkTo: false
+        },
+        questCompleted: {
+            question: false,
+            say: ["Hiya, thanks for your help earlier!"],
+            linkTo: false
+        },
     }
 };
+
+export const berryTreeConfig = {
+    x: 844,
+    y: 721,
+    width: 80,
+    height: 80,
+    spritesheet: 'berry-tree',
+    spritenum: 0,
+    key: 'npc-berryTree',
+    dialogue: {
+        hello: {
+            question: false,
+            say: ["*Obtained a blue berry!*"],
+            linkTo: false
+        },
+    }
+}

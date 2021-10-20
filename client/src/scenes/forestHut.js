@@ -260,12 +260,36 @@ export default class forestHut extends Phaser.Scene {
                 if (!self.forestHermitInteractionBox.body.embedded && self.forestHermitInteractionBox.body.touching.none) {
                     return;
                 }
-                
+
                 self.dialogueActive = true;
-                //self.forestHermit.setTexture(SPRITES[0].spriteSheet, 20) // face the player
-                self.forestHermit.readDialogue("hello");
                 self.player.anims.stop();
-                self.playerManager.direction = 'right';
+                self.forestHermit.facePlayer(self.playerManager.direction);
+
+                let questState = false;
+
+                for (let q of self.questLog.quests) {
+                    if (q.id === 1) {
+                        questState = q;
+
+                        if (q.completed) {
+                            self.forestHermit.readDialogue("questCompleted");
+                            return;
+                        }
+                    }
+                }
+                if (questState === false) {
+                    self.forestHermit.readDialogue("hello");
+                } else {
+
+                    let numBerries = self.inventory.checkNumItems('blue berry');
+
+                    if (numBerries >= 5) {
+                        self.forestHermit.readDialogue("foundBerries");
+                        socket.emit("endQuest", questState);
+                    } else {
+                        self.forestHermit.readDialogue("questProgressCheck");
+                    }
+                }
                 
             });
 

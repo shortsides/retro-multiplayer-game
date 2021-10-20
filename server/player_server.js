@@ -56,11 +56,14 @@ export default class PlayerController {
             this.endTutorial(data);
         })
 
-        /*
-        this.client_io.on("attack", attackData => {
-            this.handleAttack(attackData);
+        this.client_io.on("acceptQuest", quest => {
+            this.acceptQuest(quest);
         })
-        */
+
+        this.client_io.on("endQuest", quest => {
+            this.endQuest(quest);
+        })
+
     }
 
 
@@ -187,21 +190,6 @@ export default class PlayerController {
         }
     }
 
-    handleAttack(attackData) {
-
-        this.state.health -= attackData.damage;
-        console.log(`${this.client_io.name} took ${attackData.damage} damage`);
-
-        if (this.state.health <1) {
-            console.log(`${this.client_io.name} died`)
-            this.state.isDead = true;
-        }
-
-        // emit to all players that the player was damaged
-        this.world.io.sockets.in(this.world.roomName).emit('playerDamaged', this.state);
-    }
-
-
     changeScene(scenes) {
 
         this.messages = []; // reset movement messages
@@ -319,6 +307,23 @@ export default class PlayerController {
         this.state.tutorial = false;
     }
 
+    acceptQuest(quest) {
+        console.log(`${this.state.name} started quest ${quest.name}`)
+        this.state.quests.push(quest);
+        this.client_io.emit('refreshQuestData', this.state.quests);
+    }
+
+    endQuest(quest) {
+        // update quest data
+        for (let q of this.state.quests) {
+            if (q.id === quest.id) {
+                q.completed = true;
+            }
+        }
+
+        this.client_io.emit('refreshQuestData', this.state.quests);
+    }
+
 
     // set initial state for player - spawn player in main building
     initPlayerState() {
@@ -344,6 +349,7 @@ export default class PlayerController {
             inventory: this.createInventorySlots(20),
             objects: [],
             tutorial: true,
+            quests: [],
             coins: 0,
             swordEquipped: false
         }

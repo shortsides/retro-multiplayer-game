@@ -62,6 +62,8 @@ export default class TitleScene extends Phaser.Scene {
         { frameWidth: 96, frameHeight: 80 });
         this.load.spritesheet("midora-sword-short", "../../assets/sprites/midora_sword_anim_short_v3.png", 
         { frameWidth: 96, frameHeight: 80 });
+        this.load.spritesheet("berry-tree", "../../assets/sprites/blue_berry_tree_shaking.png", 
+        { frameWidth: 82, frameHeight: 92 });
 
         // MY CHARACTERS
         this.load.spritesheet(CHARSPRITES[0].spriteSheet, `${CHARSPRITES[0].spriteSheetPath}.png`,

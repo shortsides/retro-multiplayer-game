@@ -1,3 +1,4 @@
+import { socket } from "../index.js";
 
 export default class NPC extends Phaser.GameObjects.Sprite {
 
@@ -268,7 +269,6 @@ export default class NPC extends Phaser.GameObjects.Sprite {
     }
 
     async exitDialogue() {
-        console.log('exit dialogue');
         // hide answer boxes
         this.scene.subtitleBoxYes.setAlpha(0);
         this.scene.subtitleYes.setAlpha(0);
@@ -290,12 +290,22 @@ export default class NPC extends Phaser.GameObjects.Sprite {
         
     }
 
+    facePlayer(playerDirection) {
+
+    }
+
     convoAction(action) {
         if (action.type === "pickUp") {
             this.pickUpItem(action.props);
         }
         if (action.type === "giveItem") {
             this.giveItem(action.props);
+        }
+        if (action.type === "acceptQuest") {
+            this.acceptQuest(action.props);
+        }
+        if (action.type === "addCoins") {
+            this.addCoins(action.props.coinCount);
         }
         if (action.type === "callbackScene") {
             this.callbackScene(action.props.callback);
@@ -309,10 +319,25 @@ export default class NPC extends Phaser.GameObjects.Sprite {
         this.scene.inventory.addItem(item);
     }
 
+    addCoins(coinCount) {
+        this.scene.inventory.coins+=coinCount;
+        this.scene.inventory.displayCoins();
+        this.scene.inventory.updateCoins();
+    }
+
     giveItem(item) {
-        // Remove item from inventory
-        let itemSlot = this.scene.inventory.checkItem(item.name);
-        this.scene.inventory.removeItem(itemSlot);
+
+        while (item.num > 0) {
+            // Remove item from inventory
+            let itemSlot = this.scene.inventory.checkItem(item.name);
+            this.scene.inventory.removeItem(itemSlot);
+            item.num--;
+        }
+
+    }
+
+    acceptQuest(quest) {
+        socket.emit("acceptQuest", quest);
     }
 
     async callbackScene(callback) {

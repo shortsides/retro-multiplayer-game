@@ -2,6 +2,7 @@ import { client_id, devMode, lag_ms, socket } from "../index.js";
 import { getUserSprite } from "../index.js";
 import { playerSprite } from "../index.js";
 import InventoryManager from "./Inventory.js";
+import QuestManager from "./quest_manager.js";
 
 export default class PlayerManager extends Phaser.Scene {
 
@@ -419,6 +420,9 @@ export default class PlayerManager extends Phaser.Scene {
         // create inventory object
         this.createPlayerInventory(self, playerInfo.inventory, playerInfo.coins);
 
+        // create quests object
+        this.createPlayerQuests(self, playerInfo.quests);
+
         // create health bar
         let healthBar = self.add.dom(0, -28).createFromCache("healthBar")
         let healthBarEl = document.getElementById('health_bar')
@@ -449,6 +453,11 @@ export default class PlayerManager extends Phaser.Scene {
     createPlayerInventory(self, inventory, coins) {
         self.inventory = new InventoryManager(self);
         self.inventory.loadItems(inventory, coins);
+    }
+
+    createPlayerQuests(self, quests) {
+        self.questLog = new QuestManager(self, quests);
+        self.questLog.loadQuests(quests);
     }
 
     addOtherPlayers(self, playerInfo, worldLayer) {

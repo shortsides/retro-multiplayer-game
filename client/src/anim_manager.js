@@ -155,6 +155,16 @@ export default class Anims extends Phaser.Scene {
             repeat: -1
         })
 
+        // BERRY TREE SHAKE
+        anims.create({
+            key: 'berry_tree_shake',
+            frames: self.anims.generateFrameNames('berry-tree', {
+                start: 0,
+                end: 9
+                }),
+            frameRate: FRAME_RATE,
+            repeat: 0
+        })
         
         // NPC FIGHTING ANIMS
         anims.create({

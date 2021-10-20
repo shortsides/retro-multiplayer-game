@@ -6,6 +6,7 @@ import PlayerManager from "../player_manager.js";
 import Cursors from "../cursors.js";
 import ChatManager from "../chat_manager.js";
 import NPC from "../NPC.js";
+import { berryTreeConfig } from "../NPC_char.js";
 
 export default class DarkForest extends Phaser.Scene {
 
@@ -284,6 +285,8 @@ export default class DarkForest extends Phaser.Scene {
         this.fog.mask = new Phaser.Display.Masks.BitmapMask(this, this.vision);
         this.fog.mask.invertAlpha = true;
 
+        this.spawnBerryTree();
+
     }
 
     unpauseAfterAttacks() {
@@ -329,6 +332,69 @@ export default class DarkForest extends Phaser.Scene {
         } else {
             this.allowedActions.attack = false;
         }
+    }
+
+    spawnBerryTree() {
+
+        let self = this;
+
+        // Create berry tree NPC
+        this.berryTree = new NPC(this, berryTreeConfig);
+        
+        // Create NPC dialogue UI
+        this.berryTree.createDialogueUI();
+
+        // Create collision box
+        this.berryTreeContainer = this.add.container(this.berryTree.x, this.berryTree.y);
+        this.berryTreeContainer.setSize(82, 92);
+        this.physics.world.enable(this.berryTreeContainer);
+        this.berryTreeContainer.body.setImmovable();
+        this.berryTreeCollider = this.physics.add.collider(this.playerContainer, this.berryTreeContainer);
+
+        // Create interaction box
+        this.berryTreeInteractionBox = this.add.container(this.berryTree.x, this.berryTree.y);
+        this.berryTreeInteractionBox.setSize(100, 110);
+        this.physics.world.enable(this.berryTreeInteractionBox);
+
+        // listen for player collisions with berry tree container
+        self.physics.add.overlap(self.berryTreeInteractionBox, self.playerContainer, function() {
+            
+            // interact with berry tree NPC on 'space'
+            self.cursors.space.on("down", () => {
+
+                if (self.dialogueActive) {
+                    return;
+                }
+
+                if (!self.berryTreeInteractionBox.body.embedded && self.berryTreeInteractionBox.body.touching.none) {
+                    return;
+                }
+
+                
+                self.player.anims.stop();
+                self.berryTree.play('berry_tree_shake', true);
+
+                self.berryTree.on(`animationcomplete-berry_tree_shake`, function () {
+                    if (self.dialogueActive) {
+                        return;
+                    }
+                    self.dialogueActive = true;
+                    self.berryTree.readDialogue("hello");
+
+                    // Give player a berry
+                    let berry = {
+                        name: 'blue berry',
+                        spritePath: '../../assets/sprites/blue_berry.png',
+                        info: 'Blue berry',
+                    }
+                    
+                    self.inventory.addItem(berry);
+                });
+
+            });
+
+        });
+
     }
 
 }
