@@ -1,4 +1,5 @@
 import SnakeGame from "./snake.js";
+import BikeGame from "./bike.js";
 
 export default class MiniGameController {
 
@@ -25,7 +26,7 @@ export default class MiniGameController {
         this.players.push(player);
         client.emit('init', client.number, this.players);
 
-        console.log(`snake game ${this.gameId} was initiated by ${player.name}`)
+        console.log(`bike game ${this.gameId} was initiated by ${player.name}`)
 
     }
 
@@ -68,7 +69,7 @@ export default class MiniGameController {
             name: client.name
         }
         this.players.push(player);
-        console.log(`player ${player.name} has joined snake game ${this.gameId}`);
+        console.log(`player ${player.name} has joined mini game ${this.gameId}`);
         client.emit('init', client.number, this.players);
 
         this.io.sockets.in(this.gameId).emit('joinedGame', player, this.players);
@@ -82,11 +83,15 @@ export default class MiniGameController {
 
     handleStartGame(miniGameName) {
         
-        this.io.sockets.in(this.gameId).emit('gameStart'); // init game for all clients in room
 
         if (miniGameName === 'MiniGameSnake') {
-            console.log(`starting snake game ${this.gameId}`);
-            this.game = new SnakeGame(this.io, this.gameId)
+            console.log(`starting snake mini game ${this.gameId}`);
+            this.game = new SnakeGame(this.io, this.gameId);
+            this.io.sockets.in(this.gameId).emit('gameStart'); // init game for all clients in room
+        }
+        if (miniGameName === 'MiniGameBike') {
+            console.log(`starting bike mini game ${this.gameId}`);
+            this.game = new BikeGame(this.io, this.gameId)
         }
         
     }
@@ -94,6 +99,10 @@ export default class MiniGameController {
 
     handleKeydown(keycode, client) {
         this.game.handleKeydown(keycode, client.number);
+    }
+
+    handleCollectCoins(coin, clientNum) {
+        this.game.collectCoin(coin, clientNum);
     }
 
     

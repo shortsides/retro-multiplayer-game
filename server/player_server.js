@@ -64,6 +64,10 @@ export default class PlayerController {
             this.endQuest(quest);
         })
 
+        this.client_io.on("changeSpeed", newSpeed => {
+            this.speed = newSpeed;
+        })
+
     }
 
 
@@ -335,11 +339,11 @@ export default class PlayerController {
                 x: 0,
                 y: 0,
             },
-            scene: 'SceneMainBuilding',
+            scene: 'MiniGameBike',
             init: true,
             position: {
-                x: 480,
-                y: 625
+                x: 850,
+                y: 1425
             },
             direction: 'front',
             action: null,

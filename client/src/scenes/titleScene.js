@@ -25,12 +25,16 @@ export default class TitleScene extends Phaser.Scene {
         this.load.tilemapTiledJSON("map-world", "../../assets/tilesets/world_v1.json");
         this.load.tilemapTiledJSON("map-dark-forest", "../../assets/tilesets/dark-forest.json");
         this.load.tilemapTiledJSON("map-forest-hut", "../../assets/tilesets/forest-hut.json");
+        this.load.tilemapTiledJSON("map-bike", "../../assets/tilesets/bike-map.json");
 
         // load fog of war mask
         this.load.image("circle-mask", "../../assets/sprites/circle-mask.png");
 
         // load title screens
         this.load.image("title-snake", "../../assets/titlescreens/snake_titlescreen.png");
+
+        // load minigame icons
+        this.load.image("goldCoin", "../../assets/sprites/goldCoin.png");
 
         // load chat input field
         this.load.html("chat", "../../chat_form.html");
@@ -43,6 +47,7 @@ export default class TitleScene extends Phaser.Scene {
 
         // load minigames
         this.load.html("snakeGame", "src/scenes/minigames/snake.html");
+        this.load.html("bikeGame", "src/scenes/minigames/bike.html");
 
         // load spritesheets
         this.load.spritesheet(SPRITES[1].spriteSheet, SPRITES[1].spriteSheetPath, 
@@ -86,7 +91,7 @@ export default class TitleScene extends Phaser.Scene {
         this.load.once('complete', function() {
             
             console.log('loading complete');
-            self.scene.start('SceneMainBuilding');
+            self.scene.start('MiniGameBike');
 
             setTimeout(function () {
                 socket.emit('playGame', playerName);

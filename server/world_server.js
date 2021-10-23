@@ -83,6 +83,13 @@ export const SCENES = [
             y: 582
         }
     },
+    {
+        name: 'MiniGameBike',
+        position: {
+            x: 850,
+            y: 1425
+        }
+    },
 ]
 
 export default class WorldController {
@@ -94,6 +101,7 @@ export default class WorldController {
 
         this.miniGames = { // keep track of minigames running in world
             snake: [],
+            bike: []
         };
     }
 
@@ -154,6 +162,7 @@ export default class WorldController {
     joinMiniGame(miniGameName, client) {
 
         const SNAKE_MAX_CAPACITY = 5;
+        const BIKE_MAX_CAPACITY = 5;
 
         if (miniGameName === 'MiniGameSnake') {
 
@@ -199,6 +208,47 @@ export default class WorldController {
             })
             
 
+        }
+        
+        if (miniGameName === 'MiniGameBike') {
+            let bikeGame = false;
+            let bikeGames = this.miniGames.bike;
+
+            if (bikeGames.length === 0) {
+                bikeGame = new MiniGameController(this.io, BIKE_MAX_CAPACITY);
+                bikeGame.createLobby(client);
+                bikeGames.push(bikeGame);
+                console.log('no bike games, creating new one');
+            } else {
+                let self = this;
+                for (let game of bikeGames) {
+                    if (game.isAcceptingPlayers()) {
+                        bikeGame = game;
+                        bikeGame.addPlayer(client);
+                        break;
+                    }
+                }
+                if (!bikeGame) {
+                    bikeGame = new MiniGameController(self.io, BIKE_MAX_CAPACITY);
+                    bikeGame.createLobby(client);
+                    bikeGames.push(bikeGame);
+                    console.log('all bike games are full, creating new one');
+                }
+                
+            }
+
+            client.on('collectCoin', coin => {
+                bikeGame.handleCollectCoins(coin, client.number);
+            });
+
+            client.on('leaveMiniGame', () => {
+                this.leaveMiniGame(client);
+            })
+
+            client.once("startGame", () => {
+                console.log(bikeGame.gameId); // note: this must be called once so bikeGame is reset when joining a second game
+                bikeGame.handleStartGame(miniGameName);
+            })
         }
 
     }

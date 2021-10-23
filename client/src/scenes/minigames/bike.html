@@ -1,0 +1,62 @@
+<style>
+#CountDownScreen {
+  display: none;
+  width: 800px;
+  height: 600px;
+}
+
+#countDown {
+  color: white;
+  width: 100%;
+  font-size: 25px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+#MiniGameScreen {
+  background-color: transparent;
+}
+
+</style>
+
+<body>
+
+  <div id="MiniGameInitialScreen">
+
+    <div class="center">
+      <table id="playersInLobby"></table>
+    </div>
+
+    <div id="waitingMessage">
+      WAITING FOR OTHER PLAYERS...
+    </div>
+
+    <div class="center">
+      <button type="submit" class="btn btn-dark" id="startButton">START GAME</button>
+    </div>
+    
+    <button type="submit" class="btn btn-dark" id="exitButton">EXIT</button>
+
+  </div>
+
+
+  <div id="CountDownScreen">
+    <div id="countDown"></div>
+  </div>
+
+
+  <div id="MiniGameScreen">
+
+    <div id="EndGameScreen">
+        <div id="gameConsole"></div>
+        <div id="exitButton2div">
+          <button type="submit" class="btn btn-secondary" id="exitButton2">   EXIT   </button>
+        </div>
+    </div>
+
+  </div>
+
+</body>
