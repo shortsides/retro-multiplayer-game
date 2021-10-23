@@ -352,7 +352,7 @@ export default class PlayerController {
             maxHealth: 25,
             inventory: this.createInventorySlots(20),
             objects: [],
-            tutorial: true,
+            tutorial: false,
             quests: [],
             coins: 0,
             swordEquipped: false
