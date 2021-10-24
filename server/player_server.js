@@ -339,11 +339,11 @@ export default class PlayerController {
                 x: 0,
                 y: 0,
             },
-            scene: 'MiniGameBike',
+            scene: 'SceneMainBuilding',
             init: true,
             position: {
-                x: 850,
-                y: 1425
+                x: 480,
+                y: 625
             },
             direction: 'front',
             action: null,
@@ -352,7 +352,7 @@ export default class PlayerController {
             maxHealth: 25,
             inventory: this.createInventorySlots(20),
             objects: [],
-            tutorial: false,
+            tutorial: true,
             quests: [],
             coins: 0,
             swordEquipped: false

@@ -220,6 +220,24 @@ export default class SceneWorld extends Phaser.Scene {
             socket.emit("sceneChange", scenes);
 
         }
+        // check if player has gone off left of map
+        if (this.playerContainer.body.position.x < 0) {
+
+            let scenes = {
+                new: 'MiniGameBike'
+            }
+            // pause player position
+            this.playerContainer.body.velocity.x = 0;
+            this.playerContainer.body.velocity.y = 0;
+            this.cameras.main.fadeOut(2000);
+
+            // change scene
+            socket.off();
+            this.scene.start(scenes.new, this);
+            this.anims.resumeAll();
+            socket.emit("sceneChange", scenes);
+
+        }
     
     }
     

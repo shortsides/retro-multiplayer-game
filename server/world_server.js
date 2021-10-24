@@ -53,6 +53,11 @@ export const SCENES = [
                 x: 1000,
                 y: 404
             },
+            {
+                from: 'MiniGameBike',
+                x: 50,
+                y: 922
+            },
         ]
     },
     {
@@ -203,6 +208,7 @@ export default class WorldController {
             })
 
             client.once("startGame", () => {
+                console.log('startgame')
                 console.log(snakeGame.gameId); // note: this must be called once so snakeGame is reset when joining a second game
                 snakeGame.handleStartGame(miniGameName);
             })
@@ -246,6 +252,7 @@ export default class WorldController {
             })
 
             client.once("startGame", () => {
+                console.log('startgame')
                 console.log(bikeGame.gameId); // note: this must be called once so bikeGame is reset when joining a second game
                 bikeGame.handleStartGame(miniGameName);
             })
@@ -282,6 +289,7 @@ export default class WorldController {
                     client_io.removeAllListeners("keydown");
                     client_io.removeAllListeners("startGame");
                     client_io.removeAllListeners("leaveMiniGame");
+                    client_io.removeAllListeners("collectCoin");
                 }
             }
         })

@@ -26,7 +26,7 @@ export default class MiniGameController {
         this.players.push(player);
         client.emit('init', client.number, this.players);
 
-        console.log(`bike game ${this.gameId} was initiated by ${player.name}`)
+        console.log(`Mini game ${this.gameId} was initiated by ${player.name}`)
 
     }
 
@@ -82,7 +82,6 @@ export default class MiniGameController {
 
 
     handleStartGame(miniGameName) {
-        
 
         if (miniGameName === 'MiniGameSnake') {
             console.log(`starting snake mini game ${this.gameId}`);

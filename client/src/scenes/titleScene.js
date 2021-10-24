@@ -91,7 +91,7 @@ export default class TitleScene extends Phaser.Scene {
         this.load.once('complete', function() {
             
             console.log('loading complete');
-            self.scene.start('MiniGameBike');
+            self.scene.start('SceneMainBuilding');
 
             setTimeout(function () {
                 socket.emit('playGame', playerName);

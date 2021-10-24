@@ -543,12 +543,12 @@ export default class MiniGameBike extends Phaser.Scene {
         socket.off();
 
         let scenes = {
-            old: 'MiniGameSnake',
-            new: 'SceneMainBuildingBasement'
+            old: 'MiniGameBike',
+            new: 'SceneWorld'
         }
         this.scene.start(scenes.new, this);
         this.anims.resumeAll();
-        socket.emit('changeSpeed', this.bikeType.roadSpeed);
+        socket.emit('changeSpeed', 140);
         socket.emit("sceneChange", scenes);
         socket.emit("leaveMiniGame");
     }
